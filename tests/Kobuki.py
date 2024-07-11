@@ -25,7 +25,7 @@ class Kobuki:
     __general_purpose_input = []
     __th1 = None
 
-    def __getKobukiPort(self):
+    def getKobukiPort(self):
         ports = lsports.comports()
         print(ports)
         for kport, desc, hwid in sorted(ports):
@@ -42,16 +42,13 @@ class Kobuki:
             raise Exception("Kobuki is not connected")
 
     def __init__(self):
-        # Kobuki.__getKobukiPort(self)
-        # __th1 = threading.Thread(target=Kobuki.read_data)
-        # __th1.start()
-        self.__getKobukiPort()
+        self.getKobukiPort()
         self.__th1 = threading.Thread(target=self.read_data)
         self.__th1.start()
 
+    """
     def play_on_sound(self):
         barr = bytearray([170, 85, 3, 4, 1, 0, 6])
-        # header 0,header 1,length,payload(header,length,data),checksum
         Kobuki.seri.write(barr)
         return True
 
@@ -85,7 +82,7 @@ class Kobuki:
         Kobuki.seri.write(barr)
         return True
 
-    def play_custom_sound(note, ms, self):
+    def play_custom_sound(self, note, ms):
         cs = 0
         freq = {
             'CN4': '1389.88',  # '523.25',
@@ -193,9 +190,9 @@ class Kobuki:
         Kobuki.seri.write(barr)
 
     def move(self, left_velocity, right_velocity, rotate):
-        if (rotate == 0):
+        if rotate == 0:
             botspeed = (left_velocity + right_velocity) / 2
-            if (left_velocity == right_velocity):
+            if left_velocity == right_velocity:
                 botradius = 0
             else:
                 botradius = (230 * (left_velocity + right_velocity)
@@ -211,11 +208,11 @@ class Kobuki:
                 cs = cs ^ barr[i]
             barr += cs.to_bytes(1, byteorder='big')
             Kobuki.seri.write(barr)
-        elif (rotate == 1):
+        elif rotate == 1:
             botspeed = (left_velocity + right_velocity) / 2
 
             print("botspeed: ", botspeed)
-            if (left_velocity == right_velocity):
+            if left_velocity == right_velocity:
                 botradius = 0
             else:
                 botradius = (230 * (left_velocity + right_velocity)
@@ -231,8 +228,33 @@ class Kobuki:
                 cs = cs ^ barr[i]
             barr += cs.to_bytes(1, byteorder='big')
             Kobuki.seri.write(barr)
+    """
 
-    #modificata
+    def move(self, left_velocity, right_velocity, rotate):
+        if rotate == 0:
+            # Movimento normale
+            botspeed = (left_velocity + right_velocity) / 2
+            if left_velocity == right_velocity:
+                botradius = 0
+            else:
+                botradius = (230 * (left_velocity + right_velocity)) / (2 * (right_velocity - left_velocity))
+        elif rotate == 1:
+            # Rotazione sul posto
+            botspeed = 0
+            botradius = 1  # Raggio 1 indica rotazione sul posto
+
+        cs = 0
+        barr = bytearray([170, 85, 6, 1, 4])
+        barr += int(botspeed).to_bytes(2, byteorder='little', signed=True)
+        barr += int(botradius).to_bytes(2, byteorder='little', signed=True)
+
+        for i in range(2, len(barr) - 1):
+            cs = cs ^ barr[i]
+        barr += cs.to_bytes(1, byteorder='big')
+
+        Kobuki.seri.write(barr)
+
+    # modificata
     def read_data(self):
         while True:
             if Kobuki.seri.in_waiting > 0:
@@ -251,6 +273,7 @@ class Kobuki:
                     Kobuki.__current = __in_buff[38:42]
                     Kobuki.__gyro = __in_buff[42:44 + __in_buff[43]]
 
+    """
     def get_gyro_data(self):
         return self.gyro_intconverted_data()
 
@@ -265,21 +288,21 @@ class Kobuki:
         sensor.update({'LeftPWM': Kobuki.__basic_sensor[9]})
         sensor.update({'RightPWM': Kobuki.__basic_sensor[10]})
         sensor.update({'Button': Kobuki.__basic_sensor[11]})
-        if (Kobuki.__basic_sensor[12] == 0):
+        if Kobuki.__basic_sensor[12] == 0:
             sensor.update({'Charger': 'DISCHARGING'})
-        elif (Kobuki.__basic_sensor[12] == 2):
+        elif Kobuki.__basic_sensor[12] == 2:
             sensor.update({'Charger': 'DOCKING_CHARGED'})
-        elif (Kobuki.__basic_sensor[12] == 6):
+        elif Kobuki.__basic_sensor[12] == 6:
             sensor.update({'Charger': 'DOCKING_CHARGING'})
-        elif (Kobuki.__basic_sensor[12] == 18):
+        elif Kobuki.__basic_sensor[12] == 18:
             sensor.update({'Charger': 'ADAPTER_CHARGED'})
-        elif (Kobuki.__basic_sensor[12] == 22):
+        elif Kobuki.__basic_sensor[12] == 22:
             sensor.update({'Charger': 'ADAPTER_CHARGING'})
         sensor.update({'Batteryvolt': Kobuki.__basic_sensor[13]})
         sensor.update({'Overcurrentflag': Kobuki.__basic_sensor[14]})
-        if (Kobuki.__basic_sensor[14] == 1):
+        if Kobuki.__basic_sensor[14] == 1:
             sensor.update({'Overcurrent': 'Leftwheel'})
-        elif (Kobuki.__basic_sensor[14] == 2):
+        elif Kobuki.__basic_sensor[14] == 2:
             sensor.update({'Overcurrent': 'Rightwheel'})
         return sensor
 
@@ -287,19 +310,20 @@ class Kobuki:
         dockingdata = {}
         dockingdata.update({'centralsignal': Kobuki.__docking_IR[4]})
         dockingdata.update({'leftsignal': Kobuki.__docking_IR[5]})
-        if (Kobuki.__docking_IR[3] == 1):
+        if Kobuki.__docking_IR[3] == 1:
             dockingdata.update({'rightsignal': 'NEAR_LEFT'})
-        elif (Kobuki.__docking_IR[3] == 2):
+        elif Kobuki.__docking_IR[3] == 2:
             dockingdata.update({'rightsignal': 'NEAR_CENTER'})
-        elif (Kobuki.__docking_IR[3] == 4):
+        elif Kobuki.__docking_IR[3] == 4:
             dockingdata.update({'rightsignal': 'NEAR_RIGHT'})
-        elif (Kobuki.__docking_IR[3] == 8):
+        elif Kobuki.__docking_IR[3] == 8:
             dockingdata.update({'rightsignal': 'FAR_CENTER'})
-        elif (Kobuki.__docking_IR[3] == 16):
+        elif Kobuki.__docking_IR[3] == 16:
             dockingdata.update({'rightsignal': 'FAR_LEFT'})
-        elif (Kobuki.__docking_IR[3] == 32):
+        elif Kobuki.__docking_IR[3] == 32:
             dockingdata.update({'rightsignal': 'FAR_RIGHT'})
         return dockingdata
+    """
 
     def inertial_sensor_data(self):
         angle = {}
@@ -307,6 +331,7 @@ class Kobuki:
         angle.update({'anglerate': Kobuki.__inertial_sensor[4:6]})
         return angle
 
+    """
     def cliffsensor_data(self):
         cliff = {}
         cliff.update({'right_cliff_sensor': Kobuki.__cliffsensor[0]})
@@ -317,26 +342,26 @@ class Kobuki:
     def current_data(self):
         curr = {}
         curr.update({'Leftmotor': Kobuki.__current[0]})
-        curr.update({'Rightmotor': Kobuki.__current[0]})
+        curr.update({'Rightmotor': Kobuki.__current[1]})
         return curr
-
+        
     def general_purpose_input_data(self):
         gpi = {}
 
         gpi.update({'Digital input': Kobuki.__general_purpose_input[3]})
-        if (Kobuki.__general_purpose_input[3] == 1):
+        if Kobuki.__general_purpose_input[3] == 1:
             gpi.update(
                 {'Digital input status': 'High voltage is applied for digital input channel 0'})
-        elif (Kobuki.__general_purpose_input[3] == 2):
+        elif Kobuki.__general_purpose_input[3] == 2:
             gpi.update(
                 {'Digital input status': 'High voltage is applied for digital input channel 1'})
-        elif (Kobuki.__general_purpose_input[3] == 4):
+        elif Kobuki.__general_purpose_input[3] == 4:
             gpi.update(
                 {'Digital input status': 'High voltage is applied for digital input channel 2'})
-        elif (Kobuki.__general_purpose_input[3] == 8):
+        elif Kobuki.__general_purpose_input[3] == 8:
             gpi.update(
                 {'Digital input status': 'High voltage is applied for input output channel 3'})
-        elif (Kobuki.__general_purpose_input[3] == 0):
+        elif Kobuki.__general_purpose_input[3] == 0:
             gpi.update({'Digital input status': 'No voltage'})
         gpi.update(
             {'Analog input channel 0 output': Kobuki.__general_purpose_input[4:6]})
@@ -348,6 +373,7 @@ class Kobuki:
             {'Analog input channel 3 output': Kobuki.__general_purpose_input[10:12]})
         gpi.update({'Unused': Kobuki.__general_purpose_input[12:18]})
         return gpi
+    """
 
     def gyro_intconverted_data(self):
 
@@ -364,20 +390,20 @@ class Kobuki:
         nvalue = 2
         count = 0
         iteration = 4
-        while (count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue):
-            if (count == 0):
+        while count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue:
+            if count == 0:
                 x_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 1):
+            elif count == 1:
                 y_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 2):
+            elif count == 2:
                 z_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            if (count == 3):
+            if count == 3:
                 count = 0
         for data in x_axis:
             x_axis_converted.append(int.from_bytes(data, 'little'))
@@ -402,20 +428,20 @@ class Kobuki:
         nvalue = 2
         count = 0
         iteration = 4
-        while (count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue):
-            if (count == 0):
+        while count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue:
+            if count == 0:
                 x_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 1):
+            elif count == 1:
                 y_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 2):
+            elif count == 2:
                 z_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            if (count == 3):
+            if count == 3:
                 count = 0
 
         gyro.update({'x_axis_rawdata: ': x_axis})
@@ -439,20 +465,20 @@ class Kobuki:
         nvalue = 2
         count = 0
         iteration = 4
-        while (count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue):
-            if (count == 0):
+        while count != 4 and iteration <= (Kobuki.__gyro[3] * 2) + nvalue:
+            if count == 0:
                 x_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 1):
+            elif count == 1:
                 y_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            elif (count == 2):
+            elif count == 2:
                 z_axis.append(Kobuki.__gyro[iteration:iteration + nvalue])
                 count = count + 1
                 iteration = iteration + nvalue
-            if (count == 3):
+            if count == 3:
                 count = 0
         for data in x_axis:
             for innerdata in data:
