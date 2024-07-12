@@ -238,10 +238,13 @@ class Kobuki:
                 botradius = 0
             else:
                 botradius = (230 * (left_velocity + right_velocity)) / (2 * (right_velocity - left_velocity))
-        elif rotate == 1:
+        elif rotate == 1:  # Rotazione a sinistra
             # Rotazione sul posto
-            botspeed = 0
-            botradius = 1  # Raggio 1 indica rotazione sul posto
+            botspeed = left_velocity
+            botradius = 1  # Raggio 1 indica rotazione sul posto senso antiorario
+        elif rotate == -1:  # Rotazione a destra
+            botspeed = left_velocity
+            botradius = -1  # Raggio 1 indica rotazione sul posto senso antiorario
 
         cs = 0
         barr = bytearray([170, 85, 6, 1, 4])
