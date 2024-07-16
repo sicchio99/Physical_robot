@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+
+  perc_module:
+    build:
+      context: ./Perception_module
+      dockerfile: Dockerfile
+    container_name: perc_module
+    hostname: perc_module
+    ports:
+      - "8100:8100"
+    expose:
+      - 8100
+    environment:
+      - TZ=Europe/Rome
+    depends_on:
+      - mosquitto
+
+  controller_module:
+    build:
+      context: ./Controller_module
+      dockerfile: Dockerfile
+    container_name: controller_module
+    hostname: controller
+    ports:
+      - "8110:8110"
+    expose:
+      - 8110
+    environment:
+      - TZ=Europe/Rome
+    depends_on:
+      - perc_module
+      - mosquitto
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto_broker_container
+    hostname: mosquitto_module
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+    ports:
+      - '1883:1883'
+      - '9001:9001'
+    environment:
+      - TZ=Europe/Rome
+

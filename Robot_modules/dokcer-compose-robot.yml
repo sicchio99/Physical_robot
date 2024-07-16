@@ -4,7 +4,7 @@ services:
 
   sense_module:
     build:
-      context: ./sense
+      context: ./Sense_module
       dockerfile: Dockerfile
     container_name: sense_module
     hostname: sense_module
@@ -19,7 +19,7 @@ services:
 
   action_module:
     build:
-      context: ./action
+      context: ./Action_module
       dockerfile: Dockerfile
     container_name: action_module
     hostname: action_module
