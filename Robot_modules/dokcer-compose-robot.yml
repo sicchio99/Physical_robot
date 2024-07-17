@@ -14,8 +14,6 @@ services:
       - 8080
     environment:
       - TZ=Europe/Rome
-    depends_on:
-      - mosquitto
 
   action_module:
     build:
