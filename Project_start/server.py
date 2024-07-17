@@ -9,7 +9,8 @@ def start_script():
     # Ad esempio, eseguire uno script shell
     import subprocess
     try:
-        result = subprocess.run(['Desktop/docker/start.sh'], check=True, text=True, capture_output=True)
+        result = subprocess.run(['bash', 'start.sh'], check=True, universal_newlines=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         return f'Script avviato con successo: {result.stdout}', 200
     except subprocess.CalledProcessError as e:
         return f'Errore nell\'esecuzione dello script: {e.stderr}', 500
