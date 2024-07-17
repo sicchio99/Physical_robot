@@ -13,7 +13,7 @@ class UltrasonicSensorReader:
         contenente l'ID del sensore e la distanza misurata.
         """
         if self.ser.in_waiting > 0:
-            line = self.ser.readline().decode('utf-8', errors="ignore").strip()
+            line = self.ser.readline().decode('utf-8', errors="ignore").rstrip()
             sensor_id, distance = line.split(",")
             return {'sensor_id': sensor_id, 'distance': float(distance)}
         return None
@@ -24,6 +24,9 @@ class UltrasonicSensorReader:
 
 
 """
+self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=2)
+time.sleep(2)  # Attendere che la connessione seriale sia pronta)
+
 try:
     while True:
         if ser.in_waiting > 0:

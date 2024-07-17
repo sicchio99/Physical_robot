@@ -22,7 +22,7 @@ class Body:
         self._sensor_queue = deque()
 
         # Inizia il thread per la lettura dei dati di Kobuki
-        self._sim_body.kobukistart(self._sim_body.read_data)
+        # self._sim_body.kobukistart(self._sim_body.read_data)
 
     def sense(self, client):
         # Leggere i dati dei sensori a ultrasuoni
