@@ -7,7 +7,7 @@ from Kobuki import Kobuki
 class Body:
     _sensor_array: list
     _d_sensors: dict
-    # _sim_body: Kobuki
+    _sim_body: Kobuki
     _sensor_reader: UltrasonicSensorReader
     _sensor_queue: deque
 
@@ -17,7 +17,7 @@ class Body:
         for sensor in sensors:
             self._d_sensors[sensor] = 0
         self._sensor_array = list(self._d_sensors.keys())
-        # self._sim_body = Kobuki()
+        self._sim_body = Kobuki()
         self._sensor_reader = UltrasonicSensorReader()
         self._sensor_queue = deque()
 
@@ -35,7 +35,7 @@ class Body:
             self._d_sensors[sensor_name] = sensor_data['distance']
 
         # Leggere l'orientazione del robot
-        # angle = self._sim_body.inertial_sensor_data()['angle']
+        angle = self._sim_body.inertial_sensor_data()['angle']
 
         # Leggere videocamera
         # Leggere posizione del robot
