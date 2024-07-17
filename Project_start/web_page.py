@@ -40,7 +40,7 @@ class GUI:
 
     def send_request(self, action):
         config = ReadConfig()
-        ip_key = "IP_JETSON" if action == "start" else "IP_RASPBERRY"
+        ip_key = "IP_JETSON"
         ip = config.read_data(ip_key)
         url = f'http://{ip}:5008/{action}'
         try:
@@ -54,10 +54,7 @@ class GUI:
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.NORMAL)
         messagebox.showinfo("Message", "Simulation has been stopped!")
-        # subprocess.Popen(["bash", "stop.sh"])
-        config = ReadConfig()
-        ip = config.read_data("IP_RASPBERRY")
-        r = requests.get(f'http://{ip}:5008/stop')
+        threading.Thread(target=self.send_request, args=("stop",)).start()
 
 
 if __name__ == "__main__":

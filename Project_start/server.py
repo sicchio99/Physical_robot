@@ -15,6 +15,16 @@ def start_script():
     except subprocess.CalledProcessError as e:
         return f'Errore nell\'esecuzione dello script: {e.stderr}', 500
 
+@app.route('/stop', methods=['GET'])
+def stop_script():
+    import subprocess
+    try:
+        result = subprocess.run(['bash', 'stop.sh'], check=True, universal_newlines=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        return f'Script avviato con successo: {result.stdout}', 200
+    except subprocess.CalledProcessError as e:
+        return f'Errore nell\'esecuzione dello script: {e.stderr}', 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5008)

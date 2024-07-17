@@ -1,1 +1,2 @@
-# docker stop myros2_physical
+#!/bin/bash
+docker stop my_container
