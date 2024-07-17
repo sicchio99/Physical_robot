@@ -35,41 +35,20 @@ class GUI:
     def start(self):
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
-        # messagebox.showinfo("Message", "Simulation will start shortly!")
-        #command = "./start.sh"
-        result = subprocess.run(["wsl","/mnt/c/Users/User/PycharmProjects/Physical_robot/Project_start/start.sh"],
-                                capture_output=True, text=True)
-        # Controlla il codice di ritorno
-        if result.returncode == 0:
-            print(result.stdout)
-            messagebox.showinfo("Successo", "Lo script è stato eseguito con successo!")
-        else:
-            print(result.stderr)
-            messagebox.showerror("Errore", f"Errore durante l'esecuzione dello script:\n{result.stderr}")
-
-
-        # config = ReadConfig()
-        # ip = config.read_data("IP_JETSON")
-        # r = requests.get(f'http://{ip}:5008/start')
-
-    """
-    def run_script(self):
-        command = f"bash {os.path.abspath('start.sh')}"
-        try:
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-            print(result.stdout)  # Stampa l'output
-            print(result.stderr)  # Stampa eventuali errori
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error", f"Script failed: {e}")
-
-    def start(self):
-        self.start_button.config(state=tk.DISABLED)
-        self.stop_button.config(state=tk.NORMAL)
         messagebox.showinfo("Message", "Simulation will start shortly!")
+        threading.Thread(target=self.send_request, args=("start",)).start()
 
-        # Esegui il comando in un thread separato
-        threading.Thread(target=self.run_script).start()
-    """
+    def send_request(self, action):
+        config = ReadConfig()
+        ip_key = "IP_JETSON" if action == "start" else "IP_RASPBERRY"
+        ip = config.read_data(ip_key)
+        url = f'http://{ip}:5008/{action}'
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            messagebox.showinfo("Success", f"Request to {action} was successful!")
+        except requests.RequestException as e:
+            messagebox.showerror("Error", f"Failed to send {action} request: {e}")
 
     def stop(self):
         self.start_button.config(state=tk.NORMAL)
