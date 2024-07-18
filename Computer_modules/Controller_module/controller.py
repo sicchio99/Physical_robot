@@ -1,11 +1,10 @@
 import paho.mqtt.client as mqtt
-import math
 import time
 import random
 from Crossroad import Crossroad
 
 MAX_CORRECTION = 50
-ANGLE_TOLERANCE = 0.02
+ANGLE_TOLERANCE = 2.0
 
 
 class Controller:
@@ -125,47 +124,51 @@ class Controller:
             return self.set_robot_orientation(self._target_angle, self._rotation_sense, self._dx_sx)
 
     def go_back(self):
-        actual_angle = self._direction
-        current_angle = self.normalize_angle(actual_angle)
+        # actual_angle = self._direction
+        # current_angle = self.normalize_angle(actual_angle)
+        current_angle = self._direction
         self._dx_sx = False
-        if -0.3 < current_angle < 0.3:
-            self._target_angle = math.pi
-        elif -1.8 < current_angle < -1.2:
-            self._target_angle = math.pi / 2
+        if current_angle < 20.0 or current_angle > 340.0:
+            self._target_angle = 180.0
+        elif 70.0 < current_angle < 110.0:
+            self._target_angle = 270.0
             self._dx_sx = True
-        elif current_angle < -2.8 or current_angle > 2.8:
-            self._target_angle = 0
-        elif 1.2 < current_angle < 1.8:
-            self._target_angle = - math.pi / 2
+        elif 160.0 < current_angle < 200.0:
+            self._target_angle = 360.0
+        elif 250.0 < current_angle < 290.0:
+            self._target_angle = 90.0
             self._dx_sx = True
         self._rotation_sense = "front"
         return self.set_robot_orientation(self._target_angle, self._rotation_sense, self._dx_sx)
 
+    """
     def normalize_angle(self, angle):
         normalized_angle = angle % (2 * math.pi)
         if normalized_angle >= math.pi:
             normalized_angle -= 2 * math.pi
         return normalized_angle
+    """
 
     def set_robot_orientation(self, target_angle, dir, dx_sx):
-        actual_angle = self._direction
-        current_angle = self.normalize_angle(actual_angle)
+        # actual_angle = self._direction
+        # current_angle = self.normalize_angle(actual_angle)
+        current_angle = self._direction
         if dir == "front" and dx_sx:
             diff = abs(target_angle - current_angle)
         else:
             diff = abs(abs(target_angle) - abs(current_angle))
         if diff > ANGLE_TOLERANCE:
             if dir == 'right' or dir == 'front':
-                if diff > 0.8:
+                if diff > 30.0:
                     return "turn_right"
-                elif 0.3 < diff < 0.8:
+                elif 15.0 < diff < 30.0:
                     return "turn_right_slow"
                 else:
                     return "turn_right_more_slow"
             elif dir == 'left':
-                if diff > 0.8:
+                if diff > 30.0:
                     return "turn_left"
-                elif 0.3 < diff < 0.8:
+                elif 15.0 < diff < 30.0:
                     return "turn_left_slow"
                 else:
                     return "turn_left_more_slow"
@@ -212,23 +215,23 @@ class Controller:
         actual_angle = self._direction
         current_angle = self.normalize_angle(actual_angle)
         if direction == 'right':
-            if -0.3 < current_angle < 0.3:
-                self._target_angle = math.pi / 2
-            elif -1.8 < current_angle < -1.2:
-                self._target_angle = math.pi
-            elif current_angle < -2.8 or current_angle > 2.8:
-                self._target_angle = - math.pi / 2
-            elif 1.2 < current_angle < 1.8:
-                self._target_angle = 0
+            if current_angle < 20.0 or current_angle > 340.0:
+                self._target_angle = 90.0
+            elif 70.0 < current_angle < 110.0:
+                self._target_angle = 180.0
+            elif 160.0 < current_angle < 200.0:
+                self._target_angle = 270.0
+            elif 250.0 < current_angle < 290.0:
+                self._target_angle = 360.0
         if direction == 'left':
-            if -0.3 < current_angle < 0.3:
-                self._target_angle = - math.pi / 2
-            elif -1.8 < current_angle < -1.2:
-                self._target_angle = 0
-            elif current_angle < -2.8 or current_angle > 2.8:
-                self._target_angle = math.pi / 2
-            elif 1.2 < current_angle < 1.8:
-                self._target_angle = - math.pi
+            if current_angle < 20.0 or current_angle > 340.0:
+                self._target_angle = 270.0
+            elif 70.0 < current_angle < 110.0:
+                self._target_angle = 0.0
+            elif 160.0 < current_angle < 200.0:
+                self._target_angle = 90.0
+            elif 250.0 < current_angle < 290.0:
+                self._target_angle = 180.0
 
     def is_far_enough(self, x, y, crossroads, threshold=0.4):
         for cross in crossroads:

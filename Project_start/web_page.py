@@ -5,7 +5,6 @@ from PIL import Image, ImageTk
 import subprocess
 import requests
 from Project_start.read_Config import ReadConfig
-import os
 
 
 class GUI:
@@ -37,6 +36,7 @@ class GUI:
         self.stop_button.config(state=tk.NORMAL)
         messagebox.showinfo("Message", "Simulation will start shortly!")
         threading.Thread(target=self.send_request, args=("start",)).start()
+        threading.Thread(target=self.control_docker_compose, args=("up",)).start()  # Start the docker-compose
 
     def send_request(self, action):
         config = ReadConfig()
@@ -50,11 +50,21 @@ class GUI:
         except requests.RequestException as e:
             messagebox.showerror("Error", f"Failed to send {action} request: {e}")
 
+    def control_docker_compose(self, action):
+        try:
+            result = subprocess.run(["python3", "Project_start/docker_control.py", action], capture_output=True, text=True, check=True)
+            messagebox.showinfo("Docker Compose", result.stdout)
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Docker Compose Error", f"Failed to execute Docker Compose {action}: {e.stderr}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+
     def stop(self):
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.NORMAL)
         messagebox.showinfo("Message", "Simulation has been stopped!")
         threading.Thread(target=self.send_request, args=("stop",)).start()
+        threading.Thread(target=self.control_docker_compose, args=("down",)).start()  # Stop the docker-compose
 
 
 if __name__ == "__main__":
