@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     client_pub = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
-    client_pub.connect("192.168.0.111", 1883)
+    client_pub.connect("192.168.0.111", 1883)  # IP computer Giovanni
 
     while True:
         my_robot.sense(client_pub)

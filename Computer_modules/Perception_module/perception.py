@@ -2,11 +2,13 @@ import paho.mqtt.client as mqtt
 import array
 import numpy as np
 import cv2
+import json
 
 MIN_DISTANCE = 0.5
 
 
 class Perceptor:
+    # CAPIRE A QUALI SENSORI CORRISPONDONO S1, S2, S3 (FRONTALE, DX, SX)
     _my_sensors: list
     _sensor_values: dict
     _perception: dict
@@ -18,7 +20,7 @@ class Perceptor:
         for s in sensors:
             self._sensor_values[s] = 0
 
-    def is_free(sensor, dist):
+    def is_free(self, dist):
         return float(dist) == 0 or float(dist) > MIN_DISTANCE
 
     def get_image_from_sensor(self, image, resolution):
@@ -46,13 +48,14 @@ class Perceptor:
 
     def percept(self, values):
         for key, value in values.items():
-            if key == "ultrasonicSensor[0]":
+        # Sostituire gli id in modo da far corrispondere sensore a direzione
+            if key == "S1":
                 self._perception["left"] = self.is_free(value)
                 print("Left", self.is_free(value))
-            elif key == "ultrasonicSensor[4]":
+            elif key == "S2":
                 self._perception["front"] = self.is_free(value)
                 print("Front", self.is_free(value))
-            elif key == "ultrasonicSensor[7]":
+            elif key == "S3":
                 self._perception["right"] = self.is_free(value)
                 print("Right", self.is_free(value))
             elif key == "Vision_sensor":
@@ -68,13 +71,33 @@ class Perceptor:
                     self._perception["green"] = False
             elif key == "orientation":
                 print("Orientation", str(value))
-                self._perception["orientation"] = value
+                value_list = json.loads(value)
+                angle = self.convert_byte_to_angle(value_list[1])
+                self._perception["orientation"] = angle
             elif key == "position-x":
                 print("Position x", str(value))
                 self._perception["position_x"] = value
             elif key == "position-y":
                 print("Position y", str(value))
                 self._perception["position_y"] = value
+
+    def convert_byte_to_angle(self, byte_value):
+        print("byte value", byte_value)
+        # Convert the byte value (0-255) to degrees (0-360)
+        if byte_value <= 70:
+            # Scaling 0-70 to 0-180 degrees
+            degrees = (byte_value / 70) * 180
+        else:
+            # QUESTA VERSIONE FUNZIONAVA MA SECONDO CHATGPT NON E' CORRETTA
+            # SE NON FUNZIONA BENE USARE QUELLA SOTTO COMMENTATA
+            # Scaling 185-255 to 180-360 degrees
+            degrees = 180 + ((byte_value - 185) / 70) * 180
+
+            # Scalare 71-255 a 180-360 gradi VERSIONE CHAT GPT
+            # degrees = 180 + ((byte_value - 71) / 184) * 180
+
+        print("Angolo in gradi", degrees)
+        return degrees
 
     @property
     def sensor_values(self):
@@ -116,10 +139,10 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 
 
 if __name__ == "__main__":
-    perceptor = Perceptor(sensors=["Vision_sensor", "ultrasonicSensor[0]", "ultrasonicSensor[4]",
-                                   "ultrasonicSensor[7]"])
+    perceptor = Perceptor(sensors=["Vision_sensor", "S1", "S2",
+                                   "S3"])
     client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
-    client_mqtt.connect("mosquitto", 1883)
+    client_mqtt.connect("192.168.0.111", 1883)  # IP computer Giovanni
     client_mqtt.on_connect = on_connect
     client_mqtt.on_message = on_message
     client_mqtt.on_subscribe = on_subscribe
