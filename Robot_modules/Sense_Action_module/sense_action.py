@@ -30,26 +30,27 @@ class Body:
         self.actual_action = ""
 
     def sense(self, client):
-        sensor_data = self._sensor_reader.read_sensor_data()
-        if sensor_data:
-            self._sensor_queue.append(sensor_data)
-        while self._sensor_queue:
-            sensor_data = self._sensor_queue.popleft()
-            sensor_name = sensor_data['sensor_id']  # Assumendo che sensor_id sia del tipo "S1", "S2", ecc.
-            self._d_sensors[sensor_name] = sensor_data['distance']
+        while True:
+            sensor_data = self._sensor_reader.read_sensor_data()
+            if sensor_data:
+                self._sensor_queue.append(sensor_data)
+            while self._sensor_queue:
+                sensor_data = self._sensor_queue.popleft()
+                sensor_name = sensor_data['sensor_id']  # Assumendo che sensor_id sia del tipo "S1", "S2", ecc.
+                self._d_sensors[sensor_name] = sensor_data['distance']
 
-        # Leggere l'orientazione del robot
-        angle = self._sim_body.inertial_sensor_data()['angle']
+            # Leggere l'orientazione del robot
+            angle = self._sim_body.inertial_sensor_data()['angle']
 
-        # Leggere videocamera
-        # Leggere posizione del robot
+            # Leggere videocamera
+            # Leggere posizione del robot
 
-        # Pubblicare i dati su MQTT
-        for name in self._d_sensors.keys():
-            client.publish(f"sense/{name}", str(self._d_sensors[name]))
-            print(f"Published data from sensor: {name}")
-        client.publish(f"sense/orientation", str(angle))
-        time.sleep(0.1)
+            # Pubblicare i dati su MQTT
+            for name in self._d_sensors.keys():
+                client.publish(f"sense/{name}", str(self._d_sensors[name]))
+                print(f"Published data from sensor: {name}")
+            client.publish(f"sense/orientation", str(angle))
+            time.sleep(0.1)
 
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
@@ -158,8 +159,8 @@ if __name__ == "__main__":
 
     sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
     sensing_thread.start()
-    client_pub.loop()
     while True:
+        client_pub.loop()
         if my_robot.actual_action != "":
             if my_robot.actual_action == my_robot.past_action:
                 my_robot.exe_action(my_robot.past_action)

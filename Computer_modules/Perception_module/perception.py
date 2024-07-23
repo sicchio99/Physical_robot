@@ -46,6 +46,7 @@ class Perceptor:
             mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         return len(contours) > 0
 
+    """
     def percept(self, values):
         print("Arrivo:", values)
         for key, value in values.items():
@@ -82,6 +83,24 @@ class Perceptor:
             #elif key == "position-y":
                 #print("Position y", str(value))
                 #self._perception["position_y"] = value
+    """
+
+    def percept(self, key):
+        if key == "S1":
+            self._perception["front"] = self.is_free(self._sensor_values[key])
+            print("Left", self.is_free(self._sensor_values[key]))
+        elif key == "S2":
+            self._perception["left"] = self.is_free(self._sensor_values[key])
+            print("Front", self.is_free(self._sensor_values[key]))
+        elif key == "S3":
+            self._perception["right"] = self.is_free(self._sensor_values[key])
+            print("Right", self.is_free(self._sensor_values[key]))
+        elif key == "orientation":
+            print("Orientation", str(self._sensor_values[key]))
+            if self._sensor_values[key]:
+                value_list = json.loads(self._sensor_values[key])
+                angle = self.convert_byte_to_angle(value_list[1])
+                self._perception["orientation"] = angle
 
     def convert_byte_to_angle(self, byte_value):
         print("byte value", byte_value)
@@ -109,6 +128,16 @@ class Perceptor:
     def perception(self):
         return self._perception
 
+    def find_name(self, value):
+        if value == "S1":
+            return "front"
+        elif value == "S2":
+            return "left"
+        elif value == "S3":
+            return "right"
+        elif value == "orientation":
+            return value
+
 
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code.is_failure:
@@ -129,11 +158,14 @@ def on_message(client, userdata, msg):
             sensor_name[1] = "S1"
         perceptor.sensor_values[sensor_name[1]] = message_value
 
-    perceptor.percept(perceptor.sensor_values)
+    perceptor.percept(sensor_name[1])
+    name = perceptor.find_name(sensor_name[1])
+    client.publish(f"perception/{name}", str(perceptor.perception[name]))
+    print("Published on", name, "with value", perceptor.perception[name])
 
-    for key, value in perceptor.perception.items():
-        client.publish(f"perception/{key}", str(value))
-        print("Published on", key, "with value", value)
+    # for key, value in perceptor.perception.items():
+        # client.publish(f"perception/{key}", str(value))
+        # print("Published on", key, "with value", value)
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
