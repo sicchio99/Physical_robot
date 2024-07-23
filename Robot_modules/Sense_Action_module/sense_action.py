@@ -1,5 +1,5 @@
 import time
-
+import threading
 import paho.mqtt.client as mqtt
 from Sensors import UltrasonicSensorReader
 from collections import deque
@@ -140,15 +140,30 @@ if __name__ == "__main__":
     client_pub.on_message = on_message
     client_pub.on_subscribe = on_subscribe
 
+    """
     while True:
         my_robot.sense(client_pub)
         client_pub.loop()
-        if my_robot.actual_action == my_robot.past_action:
-            my_robot.exe_action(my_robot.past_action)
-        else:
-            my_robot.exe_action(my_robot.actual_action)
-            my_robot.past_action = my_robot.actual_action
+        if my_robot.actual_action != "":
+            if my_robot.actual_action == my_robot.past_action:
+                my_robot.exe_action(my_robot.past_action)
+            else:
+                my_robot.exe_action(my_robot.actual_action)
+                my_robot.past_action = my_robot.actual_action
 
         #if len(my_robot._action_queue) > 0:
             #action = my_robot._action_queue.popleft()
             #my_robot.exe_action(action)
+    """
+
+    sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
+    sensing_thread.start()
+    client_pub.loop()
+    while True:
+        if my_robot.actual_action != "":
+            if my_robot.actual_action == my_robot.past_action:
+                my_robot.exe_action(my_robot.past_action)
+            else:
+                my_robot.exe_action(my_robot.actual_action)
+                my_robot.past_action = my_robot.actual_action
+        time.sleep(0.1)
