@@ -6,7 +6,7 @@ services:
     build:
       context: ./Perception_module
       dockerfile: Dockerfile
-    container_name: perc_module
+    container_name: perc_module_phy
     hostname: perc_module
     ports:
       - "8100:8100"
@@ -17,25 +17,25 @@ services:
     depends_on:
       - mosquitto
 
-  controller_module:
-    build:
-      context: ./Controller_module
-      dockerfile: Dockerfile
-    container_name: controller_module
-    hostname: controller
-    ports:
-      - "8110:8110"
-    expose:
-      - 8110
-    environment:
-      - TZ=Europe/Rome
-    depends_on:
-      - perc_module
-      - mosquitto
+  #controller_module:
+    #build:
+      #context: ./Controller_module
+      #dockerfile: Dockerfile
+    #container_name: controller_module_phy
+    #hostname: controller
+    #ports:
+      #- "8110:8110"
+    #expose:
+      #- 8110
+    #environment:
+      #- TZ=Europe/Rome
+    #depends_on:
+      #- perc_module
+      #- mosquitto
 
   mosquitto:
     image: eclipse-mosquitto:latest
-    container_name: mosquitto_broker_container
+    container_name: mosquitto_broker_container_phy
     hostname: mosquitto_module
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
