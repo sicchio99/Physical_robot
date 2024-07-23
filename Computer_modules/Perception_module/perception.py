@@ -72,9 +72,10 @@ class Perceptor:
                     #self._perception["green"] = False
             elif key == "orientation":
                 print("Orientation", str(value))
-                value_list = json.loads(value)
-                angle = self.convert_byte_to_angle(value_list[1])
-                self._perception["orientation"] = angle
+                if value:
+                    value_list = json.loads(value)
+                    angle = self.convert_byte_to_angle(value_list[1])
+                    self._perception["orientation"] = angle
             #elif key == "position-x":
                 #print("Position x", str(value))
                 #self._perception["position_x"] = value
@@ -124,6 +125,8 @@ def on_message(client, userdata, msg):
     if sensor_name[1] == "position":
         perceptor.sensor_values[f"position-{sensor_name[2]}"] = message_value
     else:
+        if sensor_name[1].endswith("S1"):
+            sensor_name[1] = "S1"
         perceptor.sensor_values[sensor_name[1]] = message_value
 
     perceptor.percept(perceptor.sensor_values)

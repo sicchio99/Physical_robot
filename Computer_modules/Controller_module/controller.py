@@ -219,15 +219,6 @@ class Controller:
         current_angle = self.normalize_angle(actual_angle)
         if direction == 'right':
             if current_angle < 20.0 or current_angle > 340.0:
-                self._target_angle = 90.0
-            elif 70.0 < current_angle < 110.0:
-                self._target_angle = 180.0
-            elif 160.0 < current_angle < 200.0:
-                self._target_angle = 270.0
-            elif 250.0 < current_angle < 290.0:
-                self._target_angle = 360.0
-        if direction == 'left':
-            if current_angle < 20.0 or current_angle > 340.0:
                 self._target_angle = 270.0
             elif 70.0 < current_angle < 110.0:
                 self._target_angle = 0.0
@@ -235,6 +226,15 @@ class Controller:
                 self._target_angle = 90.0
             elif 250.0 < current_angle < 290.0:
                 self._target_angle = 180.0
+        if direction == 'left':
+            if current_angle < 20.0 or current_angle > 340.0:
+                self._target_angle = 90.0
+            elif 70.0 < current_angle < 110.0:
+                self._target_angle = 180.0
+            elif 160.0 < current_angle < 200.0:
+                self._target_angle = 270.0
+            elif 250.0 < current_angle < 290.0:
+                self._target_angle = 0.0
 
     def is_far_enough(self, x, y, crossroads, threshold=0.4):
         for cross in crossroads:
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     print(str(controller._dx_sx))
     print(str(controller._target))
 
-    time.sleep(20)
+    time.sleep(30)
 
     client_mqtt = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)

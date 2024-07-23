@@ -2,12 +2,47 @@ version: '3'
 
 services:
 
-  sense_module:
+  #sense_module:
+    #build:
+      #context: ./Sense_module
+      #dockerfile: Dockerfile
+    #container_name: sense_module
+    #hostname: sense_module
+    #ports:
+      #- "8080:8080"
+    #expose:
+      #- 8080
+    #environment:
+      #- TZ=Europe/Rome
+    #devices:
+      #- /dev/ttyUSB0
+      #- /dev/ttyUSB1
+
+  #action_module:
+    #build:
+      #context: ./Action_module
+      #dockerfile: Dockerfile
+    #container_name: action_module
+    #hostname: action_module
+    #ports:
+      #- "8090:8090"
+    #expose:
+      #- 8090
+    #environment:
+      #- TZ=Europe/Rome
+    #depends_on:
+      #- sense_module
+    #devices:
+      #- /dev/ttyUSB0
+      #- /dev/ttyUSB1
+
+
+  sense_action_module:
     build:
-      context: ./Sense_module
+      context: ./Sense_Action_module
       dockerfile: Dockerfile
-    container_name: sense_module
-    hostname: sense_module
+    container_name: sense_action_module
+    hostname: sense_action_module
     ports:
       - "8080:8080"
     expose:
@@ -17,18 +52,3 @@ services:
     devices:
       - /dev/ttyUSB0
       - /dev/ttyUSB1
-
-  action_module:
-    build:
-      context: ./Action_module
-      dockerfile: Dockerfile
-    container_name: action_module
-    hostname: action_module
-    ports:
-      - "8090:8090"
-    expose:
-      - 8090
-    environment:
-      - TZ=Europe/Rome
-    depends_on:
-      - sense_module

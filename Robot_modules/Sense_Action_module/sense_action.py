@@ -1,4 +1,6 @@
 import paho.mqtt.client as mqtt
+from Sensors import UltrasonicSensorReader
+from collections import deque
 from Kobuki import Kobuki
 
 BASE_SPEED = 2.0
@@ -8,15 +10,38 @@ MORE_SLOW_TURN_SPEED = 0.1
 
 
 class Body:
-    _actuators: list
+    _d_sensors: dict
+    _sensor_reader: UltrasonicSensorReader
+    _sensor_queue: deque
     _sim_body: Kobuki
+    _actuators: list
 
-    def __init__(self, actuators):
-        assert isinstance(actuators, list)
-        self._actuators = actuators
+    def __init__(self):
+        self._d_sensors = {}
         self._sim_body = Kobuki()
-        # Inizia il thread per la lettura dei dati di Kobuki
-        # self._sim_body.kobukistart(self._sim_body.read_data)
+        self._sensor_reader = UltrasonicSensorReader()
+        self._sensor_queue = deque()
+
+    def sense(self, client):
+        sensor_data = self._sensor_reader.read_sensor_data()
+        if sensor_data:
+            self._sensor_queue.append(sensor_data)
+        while self._sensor_queue:
+            sensor_data = self._sensor_queue.popleft()
+            sensor_name = sensor_data['sensor_id']  # Assumendo che sensor_id sia del tipo "S1", "S2", ecc.
+            self._d_sensors[sensor_name] = sensor_data['distance']
+
+        # Leggere l'orientazione del robot
+        angle = self._sim_body.inertial_sensor_data()['angle']
+
+        # Leggere videocamera
+        # Leggere posizione del robot
+
+        # Pubblicare i dati su MQTT
+        for name in self._d_sensors.keys():
+            client.publish(f"sense/{name}", str(self._d_sensors[name]))
+            print(f"Published data from sensor: {name}")
+        client.publish(f"sense/orientation", str(angle))
 
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
@@ -76,12 +101,14 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 
 
 if __name__ == "__main__":
-    my_robot = Body(["leftMotor", "rightMotor"])
+    my_robot = Body()
 
-    client_mqtt = mqtt.Client(
-        mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
-    client_mqtt.connect("192.168.0.111", 1883)
-    client_mqtt.on_connect = on_connect
-    client_mqtt.on_message = on_message
-    client_mqtt.on_subscribe = on_subscribe
-    client_mqtt.loop_forever()
+    client_pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
+    client_pub.connect("192.168.0.111", 1883)  # IP computer Giovanni
+    client_pub.on_connect = on_connect
+    client_pub.on_message = on_message
+    client_pub.on_subscribe = on_subscribe
+
+    while True:
+        my_robot.sense(client_pub)
+        client_pub.loop()

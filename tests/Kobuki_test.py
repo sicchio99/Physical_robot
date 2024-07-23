@@ -24,9 +24,7 @@ class Kobuki:
     __gyro = []
     __general_purpose_input = []
     __th1 = None
-    seri = None
 
-    """
     def getKobukiPort(self):
         ports = lsports.comports()
         print(ports)
@@ -42,22 +40,6 @@ class Kobuki:
                     print(f"Error opening serial port: {e}")
         else:
             raise Exception("Kobuki is not connected")
-    """
-
-    def getKobukiPort(self):
-        ports = lsports.comports()
-        print(ports)
-        for kport, desc, hwid in sorted(ports):
-            print(kport)
-            if "USB Serial Port" in desc or "Kobuki" in desc:
-                print("Kobuki is connected in the following port:")
-                print(f"{kport} {desc} [{hwid}]")
-                try:
-                    Kobuki.seri = ser.Serial(port=kport, baudrate=115200)
-                    return Kobuki.seri
-                except ser.SerialException as e:
-                    print(f"Error opening serial port: {e}")
-        raise Exception("Kobuki is not connected")
 
     def __init__(self):
         self.getKobukiPort()
