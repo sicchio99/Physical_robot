@@ -350,6 +350,8 @@ if __name__ == "__main__":
     print(str(controller._dx_sx))
     print(str(controller._target))
 
+    time.sleep(20)
+
     client_mqtt = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_mqtt.connect("mosquitto", 1883)
