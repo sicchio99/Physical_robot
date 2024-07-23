@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 import json
 
-MIN_DISTANCE = 0.5
+MIN_DISTANCE = 20
 
 
 class Perceptor:
@@ -47,39 +47,40 @@ class Perceptor:
         return len(contours) > 0
 
     def percept(self, values):
+        print("Arrivo:", values)
         for key, value in values.items():
-        # Sostituire gli id in modo da far corrispondere sensore a direzione
+            print("key", key, "value", value)
             if key == "S1":
-                self._perception["left"] = self.is_free(value)
+                self._perception["front"] = self.is_free(value)
                 print("Left", self.is_free(value))
             elif key == "S2":
-                self._perception["front"] = self.is_free(value)
+                self._perception["left"] = self.is_free(value)
                 print("Front", self.is_free(value))
             elif key == "S3":
                 self._perception["right"] = self.is_free(value)
                 print("Right", self.is_free(value))
-            elif key == "Vision_sensor":
-                sensor_value = eval(value)
-                image = sensor_value[0]
-                resolution = sensor_value[1]
-                img = self.get_image_from_sensor(image, resolution)
-                if img is not None and self.detect_green_object(img):
-                    print("Green object detected. Stopping the simulation.")
-                    self._perception["green"] = True
-                else:
-                    print("No green")
-                    self._perception["green"] = False
+            #elif key == "Vision_sensor":
+                #sensor_value = eval(value)
+                #image = sensor_value[0]
+                #resolution = sensor_value[1]
+                #img = self.get_image_from_sensor(image, resolution)
+                #if img is not None and self.detect_green_object(img):
+                    #print("Green object detected. Stopping the simulation.")
+                    #self._perception["green"] = True
+                #else:
+                    #print("No green")
+                    #self._perception["green"] = False
             elif key == "orientation":
                 print("Orientation", str(value))
                 value_list = json.loads(value)
                 angle = self.convert_byte_to_angle(value_list[1])
                 self._perception["orientation"] = angle
-            elif key == "position-x":
-                print("Position x", str(value))
-                self._perception["position_x"] = value
-            elif key == "position-y":
-                print("Position y", str(value))
-                self._perception["position_y"] = value
+            #elif key == "position-x":
+                #print("Position x", str(value))
+                #self._perception["position_x"] = value
+            #elif key == "position-y":
+                #print("Position y", str(value))
+                #self._perception["position_y"] = value
 
     def convert_byte_to_angle(self, byte_value):
         print("byte value", byte_value)
@@ -129,6 +130,7 @@ def on_message(client, userdata, msg):
 
     for key, value in perceptor.perception.items():
         client.publish(f"perception/{key}", str(value))
+        print("Published on", key, "with value", value)
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
@@ -139,7 +141,7 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 
 
 if __name__ == "__main__":
-    perceptor = Perceptor(sensors=["Vision_sensor", "S1", "S2",
+    perceptor = Perceptor(sensors=["S1", "S2",
                                    "S3"])
     client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_mqtt.connect("192.168.0.111", 1883)  # IP computer Giovanni

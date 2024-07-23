@@ -53,6 +53,9 @@ class Controller:
         front = self._free_directions["front"]
         left = self._free_directions["left"]
         right = self._free_directions["right"]
+        print("FRONT", front)
+        print("LEFT", left)
+        print("RIGHT", right)
 
         if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
                 and self._update_direction["x"] and self._update_direction["y"]:
@@ -293,6 +296,8 @@ def on_message(client, userdata, msg):
     perception_name = msg.topic.split("/")[1]
     message_value = msg.payload.decode("utf-8")
 
+    print("MESSAGE:", perception_name, message_value)
+
     match perception_name:
         case "front":
             controller.update_direction_function(perception_name, message_value)
@@ -314,9 +319,10 @@ def on_message(client, userdata, msg):
         print("FINE")
     else:
         control = controller.control_directions()
+        print("CONTROL RESULT", control)
         if control != controller.old_action:
             client.publish(f"controls/direction", control)
-            print("control:", control)
+            print("published control:", control)
             controller._old_action = control
 
 
@@ -329,6 +335,20 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 
 if __name__ == "__main__":
     controller = (Controller())
+
+    print(str(controller._old_action))
+    print(str(controller._free_directions))
+    print(str(controller._direction))
+    print(str(controller._rotating))
+    print(str(controller._target_angle))
+    print(str(controller._rotation_sense))
+    print(str(controller._rotation_done))
+    print(str(controller._waiting_update_direction))
+    print(str(controller._update_direction))
+    print(str(controller._crossroads))
+    print(str(controller._position))
+    print(str(controller._dx_sx))
+    print(str(controller._target))
 
     client_mqtt = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
