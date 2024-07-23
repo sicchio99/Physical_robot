@@ -1,3 +1,5 @@
+import time
+
 import paho.mqtt.client as mqtt
 from Sensors import UltrasonicSensorReader
 from collections import deque
@@ -15,7 +17,7 @@ class Body:
     _sensor_queue: deque
     _sim_body: Kobuki
     _actuators: list
-    _action_queue: deque
+    # _action_queue: deque
 
 
     def __init__(self):
@@ -23,7 +25,9 @@ class Body:
         self._sim_body = Kobuki()
         self._sensor_reader = UltrasonicSensorReader()
         self._sensor_queue = deque()
-        self._action_queue = deque()
+        # self._action_queue = deque()
+        self.past_action = ""
+        self.actual_action = ""
 
     def sense(self, client):
         sensor_data = self._sensor_reader.read_sensor_data()
@@ -45,6 +49,7 @@ class Body:
             client.publish(f"sense/{name}", str(self._d_sensors[name]))
             print(f"Published data from sensor: {name}")
         client.publish(f"sense/orientation", str(angle))
+        time.sleep(0.1)
 
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
@@ -91,8 +96,7 @@ def on_message(client, userdata, msg):
     name = msg.topic.split("/")[1]
     value = msg.payload.decode("utf-8")
     print(name, value)
-    my_robot._action_queue.append(value)
-
+    # my_robot._action_queue.append(value)
     """
     if name == "direction":
         if value == "go":
@@ -117,6 +121,7 @@ def on_message(client, userdata, msg):
             my_robot.move(0, 0)
             client.publish("action", "finish")
     """
+    my_robot.actual_action = value
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
@@ -138,6 +143,12 @@ if __name__ == "__main__":
     while True:
         my_robot.sense(client_pub)
         client_pub.loop()
-        if len(my_robot._action_queue) > 0:
-            action = my_robot._action_queue.popleft()
-            my_robot.exe_action(action)
+        if my_robot.actual_action == my_robot.past_action:
+            my_robot.exe_action(my_robot.past_action)
+        else:
+            my_robot.exe_action(my_robot.actual_action)
+            my_robot.past_action = my_robot.actual_action
+
+        #if len(my_robot._action_queue) > 0:
+            #action = my_robot._action_queue.popleft()
+            #my_robot.exe_action(action)

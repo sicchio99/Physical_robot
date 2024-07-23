@@ -320,13 +320,13 @@ def on_message(client, userdata, msg):
     else:
         control = controller.control_directions()
         print("CONTROL RESULT", control)
-        # if control != controller.old_action:
-            # client.publish(f"controls/direction", control)
-            # print("published control:", control)
-            # controller._old_action = control
-        client.publish(f"controls/direction", control)
-        print("published control:", control)
-        controller._old_action = control
+        if control != controller.old_action:
+            client.publish(f"controls/direction", control)
+            print("published control:", control)
+            controller._old_action = control
+        #client.publish(f"controls/direction", control)
+        #print("published control:", control)
+        #controller._old_action = control
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
