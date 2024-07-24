@@ -1,6 +1,6 @@
 import serial as ser
 import threading
-
+import time
 import serial.tools.list_ports as lsports
 
 
@@ -74,6 +74,7 @@ class Kobuki:
         barr += cs.to_bytes(1, byteorder='big')
 
         Kobuki.seri.write(barr)
+        time.sleep(2)
         self.is_moving = False
 
     # modificata

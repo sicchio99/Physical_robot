@@ -137,6 +137,9 @@ if __name__ == "__main__":
 
     client_pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_pub.connect("192.168.0.111", 1883)  # IP computer Giovanni
+
+    client_sub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
+    client_sub.connect("192.168.0.111", 1883)
     client_pub.on_connect = on_connect
     client_pub.on_message = on_message
     client_pub.on_subscribe = on_subscribe
@@ -159,8 +162,15 @@ if __name__ == "__main__":
 
     sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
     sensing_thread.start()
+
     while True:
-        client_pub.loop()
+        client_sub.loop()
+        if my_robot._sim_body.is_moving:
+            print("Robot is already moving")
+            pass
+        else:
+            my_robot.exe_action(my_robot.actual_action)
+        """
         if my_robot.actual_action != "":
             if my_robot.actual_action == my_robot.past_action:
                 my_robot.exe_action(my_robot.past_action)
@@ -168,3 +178,4 @@ if __name__ == "__main__":
                 my_robot.exe_action(my_robot.actual_action)
                 my_robot.past_action = my_robot.actual_action
         time.sleep(0.1)
+        """
