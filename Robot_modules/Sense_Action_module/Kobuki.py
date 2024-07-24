@@ -25,6 +25,7 @@ class Kobuki:
     __general_purpose_input = []
     __th1 = None
     seri = None
+    is_moving = False
 
     def getKobukiPort(self):
         ports = lsports.comports()
@@ -47,6 +48,7 @@ class Kobuki:
         self.__th1.start()
 
     def move(self, left_velocity, right_velocity, rotate):
+        self.is_moving = True
         if rotate == 0:
             # Movimento normale
             botspeed = (left_velocity + right_velocity) / 2
@@ -72,6 +74,7 @@ class Kobuki:
         barr += cs.to_bytes(1, byteorder='big')
 
         Kobuki.seri.write(barr)
+        self.is_moving = False
 
     # modificata
     def read_data(self):
