@@ -6,9 +6,9 @@ from collections import deque
 from Kobuki import Kobuki
 
 BASE_SPEED = 20.0
-TURN_SPEED = 0.3
-SLOW_TURN_SPEED = 0.2
-MORE_SLOW_TURN_SPEED = 0.1
+TURN_SPEED = 40.0
+SLOW_TURN_SPEED = 20.0
+MORE_SLOW_TURN_SPEED = 10.0
 
 
 class Body:
@@ -59,10 +59,10 @@ class Body:
         self.move(BASE_SPEED, 0)
 
     def turn_left(self, vel):
-        self.move(vel, -1)
+        self.move(vel, 1)
 
     def turn_right(self, vel):
-        self.move(vel, 1)
+        self.move(vel, -1)
 
     def exe_action(self, value):
         print("AZIONE IN ESECUZIONE", value)
@@ -135,30 +135,14 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 if __name__ == "__main__":
     my_robot = Body()
 
-    client_pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
+    client_pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True, client_id="pub")
     client_pub.connect("192.168.0.111", 1883)  # IP computer Giovanni
 
-    client_sub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
+    client_sub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True, client_id="sub")
     client_sub.connect("192.168.0.111", 1883)
-    client_pub.on_connect = on_connect
-    client_pub.on_message = on_message
-    client_pub.on_subscribe = on_subscribe
-
-    """
-    while True:
-        my_robot.sense(client_pub)
-        client_pub.loop()
-        if my_robot.actual_action != "":
-            if my_robot.actual_action == my_robot.past_action:
-                my_robot.exe_action(my_robot.past_action)
-            else:
-                my_robot.exe_action(my_robot.actual_action)
-                my_robot.past_action = my_robot.actual_action
-
-        #if len(my_robot._action_queue) > 0:
-            #action = my_robot._action_queue.popleft()
-            #my_robot.exe_action(action)
-    """
+    client_sub.on_connect = on_connect
+    client_sub.on_message = on_message
+    client_sub.on_subscribe = on_subscribe
 
     sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
     sensing_thread.start()
