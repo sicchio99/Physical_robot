@@ -47,15 +47,15 @@ class Crossroad:
                 self.directions.append(["ovest", True])
 
     def define_direction(self, orientation):
-        actual_angle = orientation
-        current_angle = self.normalize_angle(actual_angle)
-        if -0.3 < current_angle < 0.3:
+        #actual_angle = orientation
+        #current_angle = self.normalize_angle(actual_angle)
+        if orientation < 20.0 or orientation > 340.0:
             return "nord"
-        elif -1.8 < current_angle < -1.2:
+        elif 70.0 < orientation < 110.0:
             return "est"
-        elif current_angle < -2.8 or current_angle > 2.8:
+        elif 160.0 < orientation < 200.0:
             return "sud"
-        elif 1.2 < current_angle < 1.8:
+        elif 250.0 < orientation < 290.0:
             return "ovest"
 
     def get_true_directions(self):

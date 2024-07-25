@@ -39,8 +39,9 @@ class Controller:
             "front": False,
             "left": False,
             "right": False,
-            "x": False,
-            "y": False}
+            #"x": False,
+            #"y": False
+            }
         self._crossroads = []
         self._position = {
             "x": 0.0,
@@ -50,16 +51,23 @@ class Controller:
 
     def control_directions(self):
         global client_mqtt
+        print("-------INIZIO DEL CONTROLLO----------")
         front = self._free_directions["front"]
         left = self._free_directions["left"]
         right = self._free_directions["right"]
         print("FRONT", front)
         print("LEFT", left)
         print("RIGHT", right)
+        print("Update direction", str(self._update_direction))
+        print("Waiting update", str(self._waiting_update_direction))
 
-        if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
-                and self._update_direction["x"] and self._update_direction["y"]:
+        # if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
+                # and self._update_direction["x"] and self._update_direction["y"]:
+        if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"]:
             self._waiting_update_direction = False
+
+        print("Rotating", self._rotating)
+        print("Rotating done", self._rotation_done)
 
         if not self._rotating:
             if self._rotation_done:
@@ -70,6 +78,8 @@ class Controller:
                     print("Rotation done, exit from turn/crossroad")
                     return "go"
             else:
+                print("Old action", self._old_action)
+                print("Waiting update", self._waiting_update_direction)
                 if self._old_action == "cross" and not self._waiting_update_direction:
                     if (front + left + right) >= 2:
                         if self.is_far_enough(self._position["x"], self._position["y"],
@@ -112,7 +122,7 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            time.sleep(1.9)
+                            time.sleep(3)
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -215,8 +225,9 @@ class Controller:
             return self.turn_left()
 
     def find_target_angle(self, direction):
-        actual_angle = self._direction
-        current_angle = self.normalize_angle(actual_angle)
+        # actual_angle = self._direction
+        # current_angle = self.normalize_angle(actual_angle)
+        current_angle = self._direction
         if direction == 'right':
             if current_angle < 20.0 or current_angle > 340.0:
                 self._target_angle = 270.0
@@ -353,7 +364,7 @@ if __name__ == "__main__":
     print(str(controller._dx_sx))
     print(str(controller._target))
 
-    time.sleep(30)
+    time.sleep(15)
 
     client_mqtt = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)

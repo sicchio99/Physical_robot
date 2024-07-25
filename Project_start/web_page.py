@@ -1,4 +1,5 @@
 import threading
+import time
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
@@ -16,7 +17,7 @@ class GUI:
 
         # Load and resize the image with antialiasing
         image = Image.open("kobuki.jpg")
-        image = image.resize((600, 400), Image.LANCZOS)  # Use Image.LANCZOS instead of Image.ANTIALIAS
+        image = image.resize((400, 400), Image.LANCZOS)  # Use Image.LANCZOS instead of Image.ANTIALIAS
         photo = ImageTk.PhotoImage(image)
         self.label = tk.Label(master, image=photo)
         self.label.image = photo  # Avoid garbage collection
@@ -36,6 +37,7 @@ class GUI:
         self.stop_button.config(state=tk.NORMAL)
         messagebox.showinfo("Message", "Simulation will start shortly!")
         threading.Thread(target=self.send_request, args=("start",)).start()
+        time.sleep(5)
         threading.Thread(target=self.control_docker_compose, args=("up",)).start()  # Start the docker-compose
 
     def send_request(self, action):
@@ -52,7 +54,7 @@ class GUI:
 
     def control_docker_compose(self, action):
         try:
-            result = subprocess.run(["python3", "Project_start/docker_control.py", action], capture_output=True, text=True, check=True)
+            result = subprocess.run(["python3", "./docker_control.py", action], capture_output=True, text=True, check=True)
             messagebox.showinfo("Docker Compose", result.stdout)
         except subprocess.CalledProcessError as e:
             messagebox.showerror("Docker Compose Error", f"Failed to execute Docker Compose {action}: {e.stderr}")
@@ -62,7 +64,7 @@ class GUI:
     def stop(self):
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.NORMAL)
-        messagebox.showinfo("Message", "Simulation has been stopped!")
+        messagebox.showinfo("Message", "Simulation will be stopped soon!")
         threading.Thread(target=self.send_request, args=("stop",)).start()
         threading.Thread(target=self.control_docker_compose, args=("down",)).start()  # Stop the docker-compose
 
