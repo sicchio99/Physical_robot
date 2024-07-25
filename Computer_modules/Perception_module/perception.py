@@ -46,45 +46,6 @@ class Perceptor:
             mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         return len(contours) > 0
 
-    """
-    def percept(self, values):
-        print("Arrivo:", values)
-        for key, value in values.items():
-            print("key", key, "value", value)
-            if key == "S1":
-                self._perception["front"] = self.is_free(value)
-                print("Left", self.is_free(value))
-            elif key == "S2":
-                self._perception["left"] = self.is_free(value)
-                print("Front", self.is_free(value))
-            elif key == "S3":
-                self._perception["right"] = self.is_free(value)
-                print("Right", self.is_free(value))
-            #elif key == "Vision_sensor":
-                #sensor_value = eval(value)
-                #image = sensor_value[0]
-                #resolution = sensor_value[1]
-                #img = self.get_image_from_sensor(image, resolution)
-                #if img is not None and self.detect_green_object(img):
-                    #print("Green object detected. Stopping the simulation.")
-                    #self._perception["green"] = True
-                #else:
-                    #print("No green")
-                    #self._perception["green"] = False
-            elif key == "orientation":
-                print("Orientation", str(value))
-                if value:
-                    value_list = json.loads(value)
-                    angle = self.convert_byte_to_angle(value_list[1])
-                    self._perception["orientation"] = angle
-            #elif key == "position-x":
-                #print("Position x", str(value))
-                #self._perception["position_x"] = value
-            #elif key == "position-y":
-                #print("Position y", str(value))
-                #self._perception["position_y"] = value
-    """
-
     def percept(self, key):
         if key == "S1":
             self._perception["front"] = self.is_free(self._sensor_values[key])

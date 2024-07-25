@@ -4,7 +4,7 @@ import random
 from Crossroad import Crossroad
 
 MAX_CORRECTION = 50
-ANGLE_TOLERANCE = 2.0
+ANGLE_TOLERANCE = 20.0
 
 
 class Controller:
@@ -122,7 +122,9 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            time.sleep(5)
+                            print("Inizio Sleep")
+                            time.sleep(10)
+                            print("Fine Sleep")
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -154,22 +156,24 @@ class Controller:
 
     def set_robot_orientation(self, target_angle, dir, dx_sx):
         current_angle = self._direction
+        print("CURRENT ROTATION ANGLE", current_angle)
         if dir == "front" and dx_sx:
             diff = abs(target_angle - current_angle)
         else:
             diff = abs(abs(target_angle) - abs(current_angle))
+        print("Difference", diff)
         if diff > ANGLE_TOLERANCE:
             if dir == 'right' or dir == 'front':
                 if diff > 45.0:
                     return "turn_right"
-                elif 20.0 < diff < 45.0:
+                elif 30.0 < diff < 45.0:
                     return "turn_right_slow"
                 else:
                     return "turn_right_more_slow"
             elif dir == 'left':
                 if diff > 45.0:
                     return "turn_left"
-                elif 20.0 < diff < 45.0:
+                elif 30.0 < diff < 45.0:
                     return "turn_left_slow"
                 else:
                     return "turn_left_more_slow"
@@ -214,6 +218,7 @@ class Controller:
 
     def find_target_angle(self, direction):
         current_angle = self._direction
+        print("Current angle", current_angle)
         if direction == 'right':
             if current_angle < 20.0 or current_angle > 340.0:
                 self._target_angle = 270.0
@@ -232,6 +237,7 @@ class Controller:
                 self._target_angle = 270.0
             elif 250.0 < current_angle < 290.0:
                 self._target_angle = 0.0
+        print("Target angle calcolato", self._target_angle)
 
     def is_far_enough(self, x, y, crossroads, threshold=0.4):
         for cross in crossroads:
