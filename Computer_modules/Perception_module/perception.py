@@ -46,7 +46,7 @@ class Perceptor:
             mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         return len(contours) > 0
 
-    def percept(self, key):
+    def percept(self, key, key2):
         if key == "S1":
             self._perception["front"] = self.is_free(self._sensor_values[key])
             print("Left", self.is_free(self._sensor_values[key]))
@@ -62,6 +62,11 @@ class Perceptor:
                 value_list = json.loads(self._sensor_values[key])
                 angle = self.convert_byte_to_angle(value_list[1])
                 self._perception["orientation"] = angle
+        elif key == "position":
+            if key2 == "x":
+                self._perception["position-x"] = self._sensor_values["position-x"]
+            elif key2 == "y":
+                self._perception["position-y"] = self._sensor_values["position-y"]
 
     def convert_byte_to_angle(self, byte_value):
         print("byte value", byte_value)
@@ -89,7 +94,7 @@ class Perceptor:
     def perception(self):
         return self._perception
 
-    def find_name(self, value):
+    def find_name(self, value, value2):
         if value == "S1":
             return "front"
         elif value == "S2":
@@ -98,6 +103,10 @@ class Perceptor:
             return "right"
         elif value == "orientation":
             return value
+        elif value == "position" and value2 == "x":
+            return "position-x"
+        elif value == "position" and value2 == "y":
+            return "position-y"
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -119,8 +128,8 @@ def on_message(client, userdata, msg):
             sensor_name[1] = "S1"
         perceptor.sensor_values[sensor_name[1]] = message_value
 
-    perceptor.percept(sensor_name[1])
-    name = perceptor.find_name(sensor_name[1])
+    perceptor.percept(sensor_name[1], sensor_name[2])
+    name = perceptor.find_name(sensor_name[1], sensor_name[2])
     client.publish(f"perception/{name}", str(perceptor.perception[name]))
     print("Published on", name, "with value", perceptor.perception[name])
 

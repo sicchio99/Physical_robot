@@ -18,6 +18,8 @@ class Body:
     _sim_body: Kobuki
     _actuators: list
     # _action_queue: deque
+    _position: dict
+    _orientation: str
 
 
     def __init__(self):
@@ -28,6 +30,10 @@ class Body:
         # self._action_queue = deque()
         self.past_action = ""
         self.actual_action = ""
+        self._position = {
+            "x": 0,
+            "y": 0}
+        self._orientation = "nord"
 
     def sense(self, client):
         while True:
@@ -42,14 +48,19 @@ class Body:
             # Leggere l'orientazione del robot
             angle = self._sim_body.inertial_sensor_data()['angle']
 
-            # Leggere videocamera
             # Leggere posizione del robot
+            self._orientation = self.define_direction(angle)
+            self.update_position()
+
+            # Leggere videocamera
 
             # Pubblicare i dati su MQTT
             for name in self._d_sensors.keys():
                 client.publish(f"sense/{name}", str(self._d_sensors[name]))
                 print(f"Published data from sensor: {name}")
             client.publish(f"sense/orientation", str(angle))
+            client.publish(f"sense/position/x", str(self._position["x"]))
+            client.publish(f"sense/position/y", str(self._position["y"]))
             time.sleep(0.1)
 
     def move(self, speed, turn):
@@ -83,6 +94,27 @@ class Body:
             my_robot.turn_right(SLOW_TURN_SPEED)
         elif value == "turn_right_more_slow":
             my_robot.turn_right(MORE_SLOW_TURN_SPEED)
+
+    def define_direction(self, orientation):
+        if orientation < 20.0 or orientation > 340.0:
+            return "nord"
+        elif 70.0 < orientation < 110.0:
+            return "est"
+        elif 160.0 < orientation < 200.0:
+            return "sud"
+        elif 250.0 < orientation < 290.0:
+            return "ovest"
+
+    def update_position(self):
+        if self._orientation == "nord":
+            self._position["x"] += 1
+        elif self._orientation == "est":
+            self._position["y"] += 1
+        elif self._orientation == "ovest":
+            self._position["y"] -= 1
+        elif self._orientation == "sud":
+            self._position["x"] -= 1
+
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
