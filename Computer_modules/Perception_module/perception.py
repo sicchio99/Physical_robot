@@ -179,7 +179,7 @@ if __name__ == "__main__":
     perceptor = Perceptor(sensors=["S1", "S2",
                                    "S3"])
     client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
-    client_mqtt.connect("192.168.0.111", 1883)  # IP computer Giovanni
+    client_mqtt.connect("mosquitto", 1883)  # IP computer Giovanni
     client_mqtt.on_connect = on_connect
     client_mqtt.on_message = on_message
     client_mqtt.on_subscribe = on_subscribe

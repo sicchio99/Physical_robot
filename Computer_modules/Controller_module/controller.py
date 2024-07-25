@@ -122,7 +122,7 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            time.sleep(3)
+                            time.sleep(5)
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -137,8 +137,6 @@ class Controller:
             return self.set_robot_orientation(self._target_angle, self._rotation_sense, self._dx_sx)
 
     def go_back(self):
-        # actual_angle = self._direction
-        # current_angle = self.normalize_angle(actual_angle)
         current_angle = self._direction
         self._dx_sx = False
         if current_angle < 20.0 or current_angle > 340.0:
@@ -154,17 +152,7 @@ class Controller:
         self._rotation_sense = "front"
         return self.set_robot_orientation(self._target_angle, self._rotation_sense, self._dx_sx)
 
-    """
-    def normalize_angle(self, angle):
-        normalized_angle = angle % (2 * math.pi)
-        if normalized_angle >= math.pi:
-            normalized_angle -= 2 * math.pi
-        return normalized_angle
-    """
-
     def set_robot_orientation(self, target_angle, dir, dx_sx):
-        # actual_angle = self._direction
-        # current_angle = self.normalize_angle(actual_angle)
         current_angle = self._direction
         if dir == "front" and dx_sx:
             diff = abs(target_angle - current_angle)
@@ -172,16 +160,16 @@ class Controller:
             diff = abs(abs(target_angle) - abs(current_angle))
         if diff > ANGLE_TOLERANCE:
             if dir == 'right' or dir == 'front':
-                if diff > 30.0:
+                if diff > 45.0:
                     return "turn_right"
-                elif 15.0 < diff < 30.0:
+                elif 20.0 < diff < 45.0:
                     return "turn_right_slow"
                 else:
                     return "turn_right_more_slow"
             elif dir == 'left':
-                if diff > 30.0:
+                if diff > 45.0:
                     return "turn_left"
-                elif 15.0 < diff < 30.0:
+                elif 20.0 < diff < 45.0:
                     return "turn_left_slow"
                 else:
                     return "turn_left_more_slow"
@@ -225,8 +213,6 @@ class Controller:
             return self.turn_left()
 
     def find_target_angle(self, direction):
-        # actual_angle = self._direction
-        # current_angle = self.normalize_angle(actual_angle)
         current_angle = self._direction
         if direction == 'right':
             if current_angle < 20.0 or current_angle > 340.0:
@@ -350,24 +336,9 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 if __name__ == "__main__":
     controller = (Controller())
 
-    print(str(controller._old_action))
-    print(str(controller._free_directions))
-    print(str(controller._direction))
-    print(str(controller._rotating))
-    print(str(controller._target_angle))
-    print(str(controller._rotation_sense))
-    print(str(controller._rotation_done))
-    print(str(controller._waiting_update_direction))
-    print(str(controller._update_direction))
-    print(str(controller._crossroads))
-    print(str(controller._position))
-    print(str(controller._dx_sx))
-    print(str(controller._target))
-
     time.sleep(15)
 
-    client_mqtt = mqtt.Client(
-        mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
+    client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_mqtt.connect("mosquitto", 1883)
     client_mqtt.on_connect = on_connect
     client_mqtt.on_message = on_message
