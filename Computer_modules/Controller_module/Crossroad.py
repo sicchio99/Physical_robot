@@ -52,11 +52,11 @@ class Crossroad:
         if orientation < 20.0 or orientation > 340.0:
             return "nord"
         elif 70.0 < orientation < 110.0:
-            return "est"
+            return "ovest"
         elif 160.0 < orientation < 200.0:
             return "sud"
         elif 250.0 < orientation < 290.0:
-            return "ovest"
+            return "est"
 
     def get_true_directions(self):
         return [direction[0] for direction in self.directions if direction[1] is True]

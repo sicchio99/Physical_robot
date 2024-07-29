@@ -39,8 +39,8 @@ class Controller:
             "front": False,
             "left": False,
             "right": False,
-            #"x": False,
-            #"y": False
+            "x": False,
+            "y": False
             }
         self._crossroads = []
         self._position = {
@@ -61,9 +61,9 @@ class Controller:
         print("Update direction", str(self._update_direction))
         print("Waiting update", str(self._waiting_update_direction))
 
-        # if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
-                # and self._update_direction["x"] and self._update_direction["y"]:
-        if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"]:
+        if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
+                and self._update_direction["x"] and self._update_direction["y"]:
+        # if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"]:
             self._waiting_update_direction = False
 
         print("Rotating", self._rotating)
@@ -86,6 +86,7 @@ class Controller:
                                               self._crossroads):
                             print("New Cross!")
                             self._crossroads.append(Crossroad(self._position["x"], self._position["y"]))
+                            print("Posizone:", self._crossroads[-1].x, self._crossroads[-1].y)
                         else:
                             print("Crossroads already met!")
 
@@ -123,7 +124,7 @@ class Controller:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
                             print("Inizio Sleep")
-                            time.sleep(10)
+                            time.sleep(9)
                             print("Fine Sleep")
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
@@ -312,9 +313,9 @@ def on_message(client, userdata, msg):
             controller.update_target(message_value)
         case "orientation":
             controller._direction = float(message_value)
-        case "position_x":
+        case "position-x":
             controller.update_position("x", message_value)
-        case "position_y":
+        case "position-y":
             controller.update_position("y", message_value)
 
     if not (controller.rotating or controller.rotation_done) and controller.target:

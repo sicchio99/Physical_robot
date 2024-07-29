@@ -128,8 +128,12 @@ def on_message(client, userdata, msg):
             sensor_name[1] = "S1"
         perceptor.sensor_values[sensor_name[1]] = message_value
 
-    perceptor.percept(sensor_name[1], sensor_name[2])
-    name = perceptor.find_name(sensor_name[1], sensor_name[2])
+    if len(sensor_name) > 2:
+        perceptor.percept(sensor_name[1], sensor_name[2])
+        name = perceptor.find_name(sensor_name[1], sensor_name[2])
+    else:
+        perceptor.percept(sensor_name[1], "")
+        name = perceptor.find_name(sensor_name[1], "")
     client.publish(f"perception/{name}", str(perceptor.perception[name]))
     print("Published on", name, "with value", perceptor.perception[name])
 
