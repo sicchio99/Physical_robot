@@ -52,7 +52,7 @@ while True:
     else:
         cv2.putText(frame, "No Green Object", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    # cv2.imshow('Webcam', frame)
+    cv2.imshow('Webcam', frame)
 
     # Uscire dal loop quando si preme il tasto 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):

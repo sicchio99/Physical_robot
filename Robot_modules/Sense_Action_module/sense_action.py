@@ -138,37 +138,14 @@ class Body:
         elif self._orientation == "sud":
             self._position["x"] -= 1
 
-    def is_green_object_present(self, frame):
-        # Convertire il frame in spazio colore HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-        # Definire i limiti inferiori e superiori per il colore verde in HSV
-        lower_green = np.array([40, 40, 40])
-        upper_green = np.array([80, 255, 255])
-
-        # Creare una maschera per il colore verde
-        mask = cv2.inRange(hsv, lower_green, upper_green)
-
-        # Trovare i contorni degli oggetti verdi
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Controllare se esiste almeno un contorno con una certa area minima
-        for contour in contours:
-            if cv2.contourArea(contour) > 500:  # Filtrare contorni piccoli
-                return True
-
-        return False
-
     def get_frame(self):
         ret, frame = self._cap.read()
 
         if not ret:
             print("Errore nel ricevere frame dalla webcam")
+            return None
 
-        # Controllare se c'è un oggetto verde
-        green_present = self.is_green_object_present(frame)
-        print("Oggetto verde presente:", green_present)
-
+        return frame
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
