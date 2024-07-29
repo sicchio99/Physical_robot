@@ -160,6 +160,14 @@ class Body:
         return False
 
     def get_frame(self):
+        ret, frame = self._cap.read()
+
+        if not ret:
+            print("Errore nel ricevere frame dalla webcam")
+
+        # Controllare se c'è un oggetto verde
+        green_present = self.is_green_object_present(frame)
+        print("Oggetto verde presente:", green_present)
 
 
 

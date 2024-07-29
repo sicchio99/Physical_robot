@@ -16,6 +16,9 @@ def is_green_object_present(frame):
     # Trovare i contorni degli oggetti verdi
     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
+    if not contours:
+        return False
+
     # Controllare se esiste almeno un contorno con una certa area minima
     for contour in contours:
         if cv2.contourArea(contour) > 500:  # Filtrare contorni piccoli
