@@ -11,13 +11,12 @@ from Project_start.read_Config import ReadConfig
 class GUI:
     def __init__(self, master):
         self.master = master
-        self.master.title("Controllo di Start e Stop")
+        self.master.title("Start and Stop control")
         self.master.geometry("850x600")
         self.master.resizable(False, False)
 
-        # Load and resize the image with antialiasing
         image = Image.open("kobuki.jpg")
-        image = image.resize((400, 400), Image.LANCZOS)  # Use Image.LANCZOS instead of Image.ANTIALIAS
+        image = image.resize((400, 400), Image.LANCZOS)
         photo = ImageTk.PhotoImage(image)
         self.label = tk.Label(master, image=photo)
         self.label.image = photo  # Avoid garbage collection

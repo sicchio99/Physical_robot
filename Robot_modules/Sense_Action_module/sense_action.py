@@ -1,7 +1,5 @@
 import time
 import threading
-
-import numpy as np
 import paho.mqtt.client as mqtt
 from Sensors import UltrasonicSensorReader
 from collections import deque

@@ -310,7 +310,8 @@ def on_message(client, userdata, msg):
         case "right":
             controller.update_direction_function(perception_name, message_value)
         case "green":
-            controller.update_target(message_value)
+            print("VEDRE IN CAMERA:",message_value)
+            # controller.update_target(message_value)
         case "orientation":
             controller._direction = float(message_value)
         case "position-x":

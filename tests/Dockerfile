@@ -1,8 +1,10 @@
 # Usa un'immagine base ufficiale di Python
-FROM python:3.9-slim
+FROM python:3.10
 
 # Imposta il working directory
 WORKDIR /app
+
+COPY . .
 
 # Installa le dipendenze di sistema richieste per OpenCV
 RUN apt-get update && \
@@ -64,9 +66,7 @@ RUN apt-get update && \
 
 # Installa OpenCV usando pip
 RUN pip install opencv-python-headless
-
-# Copia il tuo codice nell'immagine Docker
-COPY . /app
+RUN pip install -r requirements.txt
 
 # Esegui lo script principale
-CMD ["python", "main.py"]
+CMD ["python", "sense_action.py"]
