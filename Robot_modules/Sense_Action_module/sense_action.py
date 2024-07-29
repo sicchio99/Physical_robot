@@ -63,6 +63,21 @@ class Body:
             client.publish(f"sense/position/y", str(self._position["y"]))
             time.sleep(0.1)
 
+    def convert_byte_to_angle(self, byte_value):
+        print("byte value", byte_value)
+        # Convert the byte value (0-255) to degrees (0-360)
+        if byte_value <= 70:
+            # Scaling 0-70 to 0-180 degrees
+            degrees = (byte_value / 70) * 180
+        else:
+            # Scaling 185-255 to 180-360 degrees
+            degrees = 180 + ((byte_value - 185) / 70) * 180
+            # Scalare 71-255 a 180-360 gradi VERSIONE CHAT GPT
+            # degrees = 180 + ((byte_value - 71) / 184) * 180
+
+        print("Angolo in gradi", degrees)
+        return degrees
+
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
 
@@ -96,13 +111,14 @@ class Body:
             my_robot.turn_right(MORE_SLOW_TURN_SPEED)
 
     def define_direction(self, orientation):
-        if orientation < 20.0 or orientation > 340.0:
+        degrees = orientation[1]
+        if degrees < 20.0 or degrees > 340.0:
             return "nord"
-        elif 70.0 < orientation < 110.0:
+        elif 70.0 < degrees < 110.0:
             return "est"
-        elif 160.0 < orientation < 200.0:
+        elif 160.0 < degrees < 200.0:
             return "sud"
-        elif 250.0 < orientation < 290.0:
+        elif 250.0 < degrees < 290.0:
             return "ovest"
 
     def update_position(self):
