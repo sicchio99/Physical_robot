@@ -87,6 +87,9 @@ class Controller:
                             print("New Cross!")
                             self._crossroads.append(Crossroad(self._position["x"], self._position["y"]))
                             print("Posizone:", self._crossroads[-1].x, self._crossroads[-1].y)
+                            print("INCROCI INCONTRATI:")
+                            for cross in self._crossroads:
+                                print(cross, cross.x, cross.y)
                         else:
                             print("Crossroads already met!")
 

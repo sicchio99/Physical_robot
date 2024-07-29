@@ -1,7 +1,6 @@
 import paho.mqtt.client as mqtt
 import array
 import numpy as np
-import cv2
 import json
 from PIL import Image
 
@@ -9,7 +8,6 @@ MIN_DISTANCE = 20
 
 
 class Perceptor:
-    # CAPIRE A QUALI SENSORI CORRISPONDONO S1, S2, S3 (FRONTALE, DX, SX)
     _my_sensors: list
     _sensor_values: dict
     _perception: dict
@@ -33,19 +31,6 @@ class Perceptor:
         else:
             print(f"Failed to capture image from vision sensor.")
             return None
-
-    def detect_green_object(self, image):
-        # Convert the image to HSV
-        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        # Define the range for green color in HSV
-        lower_green = np.array([35, 100, 100])
-        upper_green = np.array([85, 255, 255])
-        # Threshold the image to get only green colors
-        mask = cv2.inRange(hsv_image, lower_green, upper_green)
-        # Find contours in the masked image
-        contours, _ = cv2.findContours(
-            mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        return len(contours) > 0
 
     def percept(self, key, key2):
         if key == "S1":
