@@ -3,6 +3,7 @@ import array
 import numpy as np
 import cv2
 import json
+from PIL import Image
 
 MIN_DISTANCE = 20
 
@@ -71,28 +72,22 @@ class Perceptor:
             self._perception["green"] = self.is_green_object_present(self._sensor_values["camera"])
 
     def is_green_object_present(self, frame):
-        # Convertire il frame in spazio colore HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # Convertire l'immagine in spazio colore HSV
+        hsv_image = Image.fromarray(frame).convert("HSV")
+        hsv_array = np.array(hsv_image)
 
         # Definire i limiti inferiori e superiori per il colore verde in HSV
-        lower_green = np.array([40, 40, 40])
-        upper_green = np.array([80, 255, 255])
+        lower_green = np.array([35, 100, 100])
+        upper_green = np.array([85, 255, 255])
 
         # Creare una maschera per il colore verde
-        mask = cv2.inRange(hsv, lower_green, upper_green)
+        mask = ((hsv_array[:, :, 0] >= lower_green[0]) & (hsv_array[:, :, 0] <= upper_green[0]) &
+                (hsv_array[:, :, 1] >= lower_green[1]) & (hsv_array[:, :, 1] <= upper_green[1]) &
+                (hsv_array[:, :, 2] >= lower_green[2]) & (hsv_array[:, :, 2] <= upper_green[2]))
 
-        # Trovare i contorni degli oggetti verdi
-        _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-        if contours is None:
-            return False
-
-        # Controllare se esiste almeno un contorno con una certa area minima
-        for contour in contours:
-            if cv2.contourArea(contour) > 500:  # Filtrare contorni piccoli
-                return True
-
-        return False
+        # Verifica se ci sono abbastanza pixel verdi per essere considerato un oggetto
+        green_pixel_count = np.sum(mask)
+        return green_pixel_count > 500  # Soglia arbitraria per considerare un oggetto
 
     def convert_byte_to_angle(self, byte_value):
         print("byte value", byte_value)
