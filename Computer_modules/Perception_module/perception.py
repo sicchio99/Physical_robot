@@ -1,9 +1,8 @@
 import paho.mqtt.client as mqtt
-import array
 import numpy as np
 import json
 from PIL import Image
-import cv2
+# import cv2
 
 MIN_DISTANCE = 20
 
@@ -22,16 +21,6 @@ class Perceptor:
 
     def is_free(self, dist):
         return float(dist) == 0 or float(dist) > MIN_DISTANCE
-
-    def get_image_from_sensor(self, image, resolution):
-        if image is not None and resolution is not None:
-            img_array = array.array('B', image)
-            img_np = np.array(img_array, dtype=np.uint8)
-            img_np = img_np.reshape((resolution[1], resolution[0], 3))
-            return img_np
-        else:
-            print(f"Failed to capture image from vision sensor.")
-            return None
 
     def percept(self, key, key2):
         if key == "S1":
@@ -55,8 +44,8 @@ class Perceptor:
             elif key2 == "y":
                 self._perception["position-y"] = self._sensor_values["position-y"]
         elif key == "camera":
-            # self._perception["green"] = self.is_green_object_present(self._sensor_values["camera"])
-            self._perception["green"] = self.detect_green_object(self._sensor_values["camera"])
+            self._perception["green"] = self.is_green_object_present(self._sensor_values["camera"])
+            # self._perception["green"] = self.detect_green_object(self._sensor_values["camera"])
 
     def is_green_object_present(self, frame):
         # Convertire l'immagine in spazio colore HSV
@@ -76,6 +65,7 @@ class Perceptor:
         green_pixel_count = np.sum(mask)
         return green_pixel_count > 500  # Soglia arbitraria per considerare un oggetto
 
+    """
     def detect_green_object(self, frame):
         # Convertire il frame in spazio colore HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -99,6 +89,7 @@ class Perceptor:
                 return True
 
         return False
+    """
 
     def convert_byte_to_angle(self, byte_value):
         print("byte value", byte_value)
@@ -170,10 +161,6 @@ def on_message(client, userdata, msg):
         name = perceptor.find_name(sensor_name[1], "")
     client.publish(f"perception/{name}", str(perceptor.perception[name]))
     print("Published on", name, "with value", perceptor.perception[name])
-
-    # for key, value in perceptor.perception.items():
-        # client.publish(f"perception/{key}", str(value))
-        # print("Published on", key, "with value", value)
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
