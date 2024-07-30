@@ -1,3 +1,5 @@
 paho-mqtt
 pyserial
-imageio-ffmpeg
+imageio
+numpy
+imageio[ffmpeg]

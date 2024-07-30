@@ -1,3 +1,4 @@
+import base64
 import paho.mqtt.client as mqtt
 import numpy as np
 import json
@@ -44,10 +45,18 @@ class Perceptor:
             elif key2 == "y":
                 self._perception["position-y"] = self._sensor_values["position-y"]
         elif key == "camera":
-            self._perception["green"] = self.is_green_object_present(self._sensor_values["camera"])
+            print("immagine")
+            #image = base64.b64decode(self._sensor_values["camera"])
+            #self._perception["green"] = self.is_green_object_present(image)
+
             # self._perception["green"] = self.detect_green_object(self._sensor_values["camera"])
 
     def is_green_object_present(self, frame):
+        from io import BytesIO
+
+        # Decodificare il frame (bytes) in un'immagine PIL
+        image = Image.open(BytesIO(frame)).convert("RGB")
+
         # Convertire l'immagine in spazio colore HSV
         hsv_image = Image.fromarray(frame).convert("HSV")
         hsv_array = np.array(hsv_image)
@@ -130,8 +139,8 @@ class Perceptor:
             return "position-x"
         elif value == "position" and value2 == "y":
             return "position-y"
-        elif value == "camera":
-            return "green"
+        # elif value == "camera":
+            # return "green"
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -146,21 +155,24 @@ def on_message(client, userdata, msg):
     sensor_name = msg.topic.split("/")
     message_value = msg.payload.decode("utf-8")
     print("Received")
-    if sensor_name[1] == "position":
-        perceptor.sensor_values[f"position-{sensor_name[2]}"] = message_value
-    else:
-        if sensor_name[1].endswith("S1"):
-            sensor_name[1] = "S1"
-        perceptor.sensor_values[sensor_name[1]] = message_value
+    if sensor_name[1] != 'camera':
+        if sensor_name[1] == "position":
+            perceptor.sensor_values[f"position-{sensor_name[2]}"] = message_value
+        else:
+            if sensor_name[1].endswith("S1"):
+                sensor_name[1] = "S1"
+            perceptor.sensor_values[sensor_name[1]] = message_value
 
-    if len(sensor_name) > 2:
-        perceptor.percept(sensor_name[1], sensor_name[2])
-        name = perceptor.find_name(sensor_name[1], sensor_name[2])
+        if len(sensor_name) > 2:
+            perceptor.percept(sensor_name[1], sensor_name[2])
+            name = perceptor.find_name(sensor_name[1], sensor_name[2])
+        else:
+            perceptor.percept(sensor_name[1], "")
+            name = perceptor.find_name(sensor_name[1], "")
+        client.publish(f"perception/{name}", str(perceptor.perception[name]))
+        print("Published on", name, "with value", perceptor.perception[name])
     else:
-        perceptor.percept(sensor_name[1], "")
-        name = perceptor.find_name(sensor_name[1], "")
-    client.publish(f"perception/{name}", str(perceptor.perception[name]))
-    print("Published on", name, "with value", perceptor.perception[name])
+        print("ingore")
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):

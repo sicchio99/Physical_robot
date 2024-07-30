@@ -52,3 +52,4 @@ services:
     devices:
       - /dev/ttyUSB0
       - /dev/ttyUSB1
+      - /dev/video0
