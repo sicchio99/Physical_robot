@@ -5,6 +5,7 @@ from Sensors import UltrasonicSensorReader
 from collections import deque
 from Kobuki import Kobuki
 import imageio
+import cv2
 
 BASE_SPEED = 20.0
 TURN_SPEED = 40.0
@@ -21,6 +22,7 @@ class Body:
     _position: dict
     _orientation: str
     _video_reader: any
+    _cap: any
 
 
     def __init__(self):
@@ -34,9 +36,10 @@ class Body:
             "x": 0,
             "y": 0}
         self._orientation = "nord"
-        # self._cap = cv2.VideoCapture(1)
+        self._cap = cv2.VideoCapture(1)  #
         self._video_reader = imageio.get_reader('<video1>', 'ffmpeg')
-
+        # PARTE OPENCV
+        self._cap = cv2.VideoCapture(1)
         if not self._cap.isOpened():
             print("Errore nell'apertura della webcam")
 
@@ -58,8 +61,8 @@ class Body:
             self.update_position()
 
             # Leggere videocamera
-            #self._d_sensors['camera'] = self.get_frame()
-            self._d_sensors['camera'] = self._video_reader.get_next_data()
+            self._d_sensors['camera'] = self.get_frame()
+            # self._d_sensors['camera'] = self._video_reader.get_next_data()
 
             # Pubblicare i dati su MQTT
             for name in self._d_sensors.keys():
@@ -138,7 +141,6 @@ class Body:
         elif self._orientation == "sud":
             self._position["x"] -= 1
 
-    """
     def get_frame(self):
         ret, frame = self._cap.read()
 
@@ -147,7 +149,6 @@ class Body:
             return None
 
         return frame
-    """
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -173,11 +174,6 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 
 if __name__ == "__main__":
     my_robot = Body()
-
-    # cap = cv2.VideoCapture(1)
-
-    # if not cap.isOpened():
-        # print("Errore nell'apertura della webcam")
 
     client_pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True, client_id="pub")
     client_pub.connect("192.168.0.111", 1883)  # IP computer Giovanni
