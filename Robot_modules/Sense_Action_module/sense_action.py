@@ -2,10 +2,10 @@ import time
 import threading
 import paho.mqtt.client as mqtt
 from Sensors import UltrasonicSensorReader
+from Sensors import ColorSensorReader
 from collections import deque
 from Kobuki import Kobuki
 import imageio
-#import cv2
 
 BASE_SPEED = 20.0
 TURN_SPEED = 40.0
@@ -21,9 +21,7 @@ class Body:
     _actuators: list
     _position: dict
     _orientation: str
-    _video_reader: any
-    #_cap: any
-
+    _color_reader: ColorSensorReader
 
     def __init__(self):
         self._d_sensors = {}
@@ -36,11 +34,7 @@ class Body:
             "x": 0,
             "y": 0}
         self._orientation = "nord"
-        self._video_reader = imageio.get_reader('<video1>', 'ffmpeg')
-        # PARTE OPENCV
-        #self._cap = cv2.VideoCapture(1)
-        #if not self._cap.isOpened():
-            #print("Errore nell'apertura della webcam")
+        self._color_reader = ColorSensorReader()
 
     def sense(self, client):
         while True:
@@ -59,9 +53,8 @@ class Body:
             self._orientation = self.define_direction(angle[1])
             self.update_position()
 
-            # Leggere videocamera
-            # self._d_sensors['camera'] = self.get_frame()
-            self._d_sensors['camera'] = self._video_reader.get_next_data()
+            # Leggere colore
+            self._d_sensors['color'] = self._color_reader.read_color()
 
             # Pubblicare i dati su MQTT
             for name in self._d_sensors.keys():
