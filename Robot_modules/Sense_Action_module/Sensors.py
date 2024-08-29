@@ -23,18 +23,21 @@ class UltrasonicSensorReader:
         self.ser.close()
 
 
-"""
-self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=2)
-time.sleep(2)  # Attendere che la connessione seriale sia pronta)
+class ColorSensorReader:
+    def __init__(self, port='/dev/ttyUSB2', baudrate=9600, timeout=2):
+        self.ser = serial.Serial(port, baudrate, timeout=timeout)
+        time.sleep(2)  # Attendere che la connessione seriale sia pronta)
 
-try:
-    while True:
-        if ser.in_waiting > 0:
-            line = ser.readline().decode('utf-8', errors="ignore").strip()
-            sensor_id, distance = line.split(",")
-            print(f"Sensore: {sensor_id}, Distance: {distance}")
-except KeyboardInterrupt:
-    print("\nInterrotto")
-finally:
-    ser.close()
-"""
+    def read_color(self):
+        """
+        Legge i dati dalla porta seriale e restituisce il colore rilevato dal sensore.
+        """
+        if self.ser.in_waiting > 0:
+            # Legge la linea dalla seriale
+            line = self.ser.readline().decode('utf-8', errors="ignore").rstrip()
+            return line  # Restituisce il colore letto
+        return None
+
+    def close(self):
+        """Chiude la connessione seriale."""
+        self.ser.close()
