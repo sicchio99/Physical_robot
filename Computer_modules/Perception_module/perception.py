@@ -139,8 +139,8 @@ class Perceptor:
             return "position-x"
         elif value == "position" and value2 == "y":
             return "position-y"
-        # elif value == "camera":
-            # return "green"
+        #elif value == "color":
+            #return "green"
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -155,7 +155,7 @@ def on_message(client, userdata, msg):
     sensor_name = msg.topic.split("/")
     message_value = msg.payload.decode("utf-8")
     print("Received")
-    if sensor_name[1] != 'camera':
+    if sensor_name[1] != 'color':
         if sensor_name[1] == "position":
             perceptor.sensor_values[f"position-{sensor_name[2]}"] = message_value
         else:
@@ -172,7 +172,7 @@ def on_message(client, userdata, msg):
         client.publish(f"perception/{name}", str(perceptor.perception[name]))
         print("Published on", name, "with value", perceptor.perception[name])
     else:
-        print("ingore")
+        client.publish(f"perception/green", str(message_value))
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
