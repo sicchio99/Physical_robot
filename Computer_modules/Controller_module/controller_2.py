@@ -3,7 +3,7 @@ import time
 import random
 from Crossroad import Crossroad
 
-ANGLE_TOLERANCE = 30.0
+ANGLE_TOLERANCE = 12.5
 
 
 class Controller:
@@ -21,6 +21,7 @@ class Controller:
     _position: dict
     _dx_sx: bool
     _target: bool
+    _stop: int
 
     def __init__(self):
         self._old_action = ""
@@ -47,6 +48,7 @@ class Controller:
             "y": 0.0}
         self._dx_sx = False
         self._target = False
+        self._stop = 0
 
     def control_directions(self):
         global client_mqtt
@@ -62,7 +64,6 @@ class Controller:
 
         if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
                 and self._update_direction["x"] and self._update_direction["y"]:
-        # if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"]:
             self._waiting_update_direction = False
 
         print("Rotating", self._rotating)
@@ -71,11 +72,21 @@ class Controller:
         if not self._rotating:
             if self._rotation_done:
                 if front and not left and not right:
+                    self._stop = 0
                     print("Finish Rotation")
                     self._rotation_done = False
                 else:
-                    print("Rotation done, exit from turn/crossroad")
-                    return "go"
+                    if self._stop == 0:
+                        self._stop = 1
+                        return "stop"
+                    elif self._stop == 1:
+                        time.sleep(5)
+                        self._stop = 2
+                        print("Rotation done, exit from turn/crossroad")
+                        return "go"
+                    else:
+                        print("Rotation done, exit from turn/crossroad")
+                        return "go"
             else:
                 print("Old action", self._old_action)
                 print("Waiting update", self._waiting_update_direction)
@@ -125,9 +136,7 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            print("Inizio Sleep")
-                            time.sleep(10)
-                            print("Fine Sleep")
+                            time.sleep(9.5)
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -167,19 +176,21 @@ class Controller:
         print("Difference", diff)
         if diff > ANGLE_TOLERANCE:
             if dir == 'right' or dir == 'front':
-                if diff > 60.0:
+                if diff > 40.0:
                     return "turn_right_slow"
                 #elif 40.0 < diff < 60.0:
                     #return "turn_right_slow"
                 else:
                     return "turn_right_more_slow"
+                #return "turn_right_more_slow"
             elif dir == 'left':
-                if diff > 60.0:
+                if diff > 40.0:
                     return "turn_left_slow"
                 #elif 40.0 < diff < 60.0:
                     #return "turn_left_slow"
                 else:
                     return "turn_left_more_slow"
+                # return "turn_left_more_slow"
         else:
             self._rotating = False
             self._rotation_done = True
@@ -239,7 +250,7 @@ class Controller:
             elif 160.0 < current_angle < 200.0:
                 self._target_angle = 270.0
             elif 250.0 < current_angle < 290.0:
-                self._target_angle = 0.0
+                self._target_angle = 360.0
         print("Target angle calcolato", self._target_angle)
 
     def is_far_enough(self, x, y, crossroads, threshold=0.4):
@@ -332,9 +343,6 @@ def on_message(client, userdata, msg):
                 client.publish(f"controls/direction", control)
                 print("published control:", control)
                 controller._old_action = control
-        #client.publish(f"controls/direction", control)
-        #print("published control:", control)
-        #controller._old_action = control
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
