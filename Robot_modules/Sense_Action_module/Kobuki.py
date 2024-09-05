@@ -74,7 +74,7 @@ class Kobuki:
         barr += cs.to_bytes(1, byteorder='big')
 
         Kobuki.seri.write(barr)
-        time.sleep(2)
+        time.sleep(1)
         self.is_moving = False
 
     # modificata

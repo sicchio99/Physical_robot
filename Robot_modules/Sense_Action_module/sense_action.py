@@ -54,7 +54,9 @@ class Body:
             self.update_position()
 
             # Leggere colore
-            self._d_sensors['color'] = self._color_reader.read_color()
+            color = self._color_reader.read_color()
+            if color is not None:
+                self._d_sensors['color'] = color
 
             # Pubblicare i dati su MQTT
             for name in self._d_sensors.keys():

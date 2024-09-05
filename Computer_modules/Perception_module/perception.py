@@ -26,13 +26,13 @@ class Perceptor:
     def percept(self, key, key2):
         if key == "S1":
             self._perception["front"] = self.is_free(self._sensor_values[key])
-            print("Left", self.is_free(self._sensor_values[key]))
-        elif key == "S2":
-            self._perception["left"] = self.is_free(self._sensor_values[key])
             print("Front", self.is_free(self._sensor_values[key]))
-        elif key == "S3":
+        elif key == "S2":
             self._perception["right"] = self.is_free(self._sensor_values[key])
             print("Right", self.is_free(self._sensor_values[key]))
+        elif key == "S3":
+            self._perception["left"] = self.is_free(self._sensor_values[key])
+            print("Left", self.is_free(self._sensor_values[key]))
         elif key == "orientation":
             print("Orientation", str(self._sensor_values[key]))
             if self._sensor_values[key]:
@@ -130,9 +130,9 @@ class Perceptor:
         if value == "S1":
             return "front"
         elif value == "S2":
-            return "left"
-        elif value == "S3":
             return "right"
+        elif value == "S3":
+            return "left"
         elif value == "orientation":
             return value
         elif value == "position" and value2 == "x":
@@ -172,7 +172,10 @@ def on_message(client, userdata, msg):
         client.publish(f"perception/{name}", str(perceptor.perception[name]))
         print("Published on", name, "with value", perceptor.perception[name])
     else:
-        client.publish(f"perception/green", str(message_value))
+        if message_value == "Verde":
+            client.publish("perception/green", "True")
+        else:
+            client.publish("perception/green", "False")
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):

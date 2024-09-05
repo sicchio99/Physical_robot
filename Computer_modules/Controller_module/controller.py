@@ -4,7 +4,7 @@ import random
 from Crossroad import Crossroad
 
 MAX_CORRECTION = 50
-ANGLE_TOLERANCE = 20.0
+ANGLE_TOLERANCE = 30.0
 
 
 class Controller:
@@ -127,7 +127,7 @@ class Controller:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
                             print("Inizio Sleep")
-                            time.sleep(9)
+                            time.sleep(10)
                             print("Fine Sleep")
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
@@ -168,17 +168,17 @@ class Controller:
         print("Difference", diff)
         if diff > ANGLE_TOLERANCE:
             if dir == 'right' or dir == 'front':
-                if diff > 45.0:
-                    return "turn_right"
-                elif 30.0 < diff < 45.0:
+                if diff > 60.0:
                     return "turn_right_slow"
+                #elif 40.0 < diff < 60.0:
+                    #return "turn_right_slow"
                 else:
                     return "turn_right_more_slow"
             elif dir == 'left':
-                if diff > 45.0:
-                    return "turn_left"
-                elif 30.0 < diff < 45.0:
+                if diff > 60.0:
                     return "turn_left_slow"
+                #elif 40.0 < diff < 60.0:
+                    #return "turn_left_slow"
                 else:
                     return "turn_left_more_slow"
         else:
@@ -326,12 +326,13 @@ def on_message(client, userdata, msg):
         client.publish("controls/target", "Finish")
         print("FINE")
     else:
-        control = controller.control_directions()
-        print("CONTROL RESULT", control)
-        if control != controller.old_action:
-            client.publish(f"controls/direction", control)
-            print("published control:", control)
-            controller._old_action = control
+        if (controller.rotating and perception_name == "orientation") or not controller.rotating:
+            control = controller.control_directions()
+            print("CONTROL RESULT", control)
+            if control != controller.old_action:
+                client.publish(f"controls/direction", control)
+                print("published control:", control)
+                controller._old_action = control
         #client.publish(f"controls/direction", control)
         #print("published control:", control)
         #controller._old_action = control
@@ -347,7 +348,7 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 if __name__ == "__main__":
     controller = (Controller())
 
-    time.sleep(15)
+    time.sleep(20)
 
     client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_mqtt.connect("mosquitto", 1883)
