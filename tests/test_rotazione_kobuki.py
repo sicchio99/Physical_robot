@@ -320,8 +320,8 @@ if __name__ == "__main__":
         robot.kobukistart(robot.read_data)
         """
 
-        for i in range(14):
-            robot.move(20, 20, rotate=1)
+        for i in range(17):
+            robot.move(18.5, 18.5, rotate=1)
             current_byte_value = robot.inertial_sensor_data()['angle'][1]
             current_angle = robot.convert_byte_to_angle(current_byte_value)
             print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
@@ -335,8 +335,38 @@ if __name__ == "__main__":
         current_angle = robot.convert_byte_to_angle(current_byte_value)
         print(f"Angolo finale: {current_angle} gradi")
 
-        for i in range(14):
-            robot.move(20, 20, rotate=-1)
+        for i in range(17):
+            robot.move(18.5, 18.5, rotate=-1)
+            current_byte_value = robot.inertial_sensor_data()['angle'][1]
+            current_angle = robot.convert_byte_to_angle(current_byte_value)
+            print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
+
+
+        print("Operazione completata.")
+
+        time.sleep(10)
+
+        current_byte_value = robot.inertial_sensor_data()['angle'][1]
+        current_angle = robot.convert_byte_to_angle(current_byte_value)
+        print(f"Angolo finale: {current_angle} gradi")
+
+        for i in range(26):
+            robot.move(19.5, 19.5, rotate=1)
+            current_byte_value = robot.inertial_sensor_data()['angle'][1]
+            current_angle = robot.convert_byte_to_angle(current_byte_value)
+            print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
+
+
+        print("Operazione completata.")
+
+        time.sleep(10)
+
+        current_byte_value = robot.inertial_sensor_data()['angle'][1]
+        current_angle = robot.convert_byte_to_angle(current_byte_value)
+        print(f"Angolo finale: {current_angle} gradi")
+
+        for i in range(26):
+            robot.move(19.5, 19.5, rotate=-1)
             current_byte_value = robot.inertial_sensor_data()['angle'][1]
             current_angle = robot.convert_byte_to_angle(current_byte_value)
             print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
