@@ -5,7 +5,6 @@ from Sensors import UltrasonicSensorReader
 from Sensors import ColorSensorReader
 from collections import deque
 from Kobuki import Kobuki
-import imageio
 
 BASE_SPEED = 20.0
 TURN_SPEED = 40.0
@@ -98,7 +97,7 @@ class Body:
         print("AZIONE IN ESECUZIONE", value)
         if value == "go":
             my_robot.go_straight()
-        elif value == "cross":
+        elif value == "cross" or value == "stop":
             print("Stop")
             my_robot.move(0, 0)
         elif value == "turn_left":
@@ -134,17 +133,6 @@ class Body:
             self._position["y"] -= 1
         elif self._orientation == "sud":
             self._position["x"] -= 1
-
-    """
-    def get_frame(self):
-        ret, frame = self._cap.read()
-
-        if not ret:
-            print("Errore nel ricevere frame dalla webcam")
-            return None
-
-        return frame
-    """
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
