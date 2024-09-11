@@ -196,4 +196,7 @@ if __name__ == "__main__":
             print("Robot is already moving")
             pass
         else:
-            my_robot.exe_action(my_robot.actual_action)
+            if not my_robot._rotating:
+                my_robot.exe_action(my_robot.actual_action)
+            else:
+                print("Rotazione in corso")

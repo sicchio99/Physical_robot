@@ -47,6 +47,7 @@ class Controller:
         self._dx_sx = False
         self._target = False
         self._stop = 0
+        self._waiting_rotation = False
 
     def control_directions(self):
         global client_mqtt
@@ -118,8 +119,10 @@ class Controller:
                         for el in self._update_direction.keys():
                             self._update_direction[el] = False
                         if left:
+                            self._waiting_rotation = True
                             return "turn_left"
                         elif right:
+                            self._waiting_rotation = True
                             return "turn_right"
 
                 elif self._old_action == "cross" and self._waiting_update_direction:
@@ -138,6 +141,7 @@ class Controller:
                     else:
                         if not left and not right:
                             print("Blind path")
+                            self._waiting_rotation = True
                             return "go_back"
                         else:
                             return "undetermined"
@@ -159,11 +163,13 @@ class Controller:
               (self._direction == "sud" and choice == "ovest") or
               (self._direction == "est" and choice == "sud") or
               (self._direction == "ovest" and choice == "nord")):
+            self._waiting_rotation = True
             return "turn_right"
         elif ((self._direction == "nord" and choice == "ovest") or
               (self._direction == "sud" and choice == "est") or
               (self._direction == "est" and choice == "nord") or
               (self._direction == "ovest" and choice == "sud")):
+            self._waiting_rotation = True
             return "turn_left"
 
     def is_far_enough(self, x, y, crossroads, threshold=0.4):
@@ -220,6 +226,7 @@ class Controller:
             self._rotating = False
         else:
             self._rotating = True
+            self._waiting_rotation = False
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -259,13 +266,16 @@ def on_message(client, userdata, msg):
         client.publish("controls/target", "Finish")
         print("FINE")
     else:
-        if not controller.rotating:
-            control = controller.control_directions()
-            print("CONTROL RESULT", control)
-            if control != controller.old_action:
-                client.publish(f"controls/direction", control)
-                print("published control:", control)
-                controller._old_action = control
+        if not controller._waiting_rotation:
+            if not controller.rotating:
+                control = controller.control_directions()
+                print("CONTROL RESULT", control)
+                if control != controller.old_action:
+                    client.publish(f"controls/direction", control)
+                    print("published control:", control)
+                    controller._old_action = control
+        else:
+            print("Attesa inizio rotazione")
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
@@ -278,7 +288,7 @@ def on_subscribe(client, userdata, mid, reason_code_list, properties):
 if __name__ == "__main__":
     controller = (Controller())
 
-    time.sleep(20)
+    time.sleep(30)
 
     client_mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, reconnect_on_failure=True)
     client_mqtt.connect("mosquitto", 1883)
