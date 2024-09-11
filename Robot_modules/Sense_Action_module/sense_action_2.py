@@ -7,9 +7,8 @@ from collections import deque
 from Kobuki import Kobuki
 
 BASE_SPEED = 20.0
-TURN_SPEED = 40.0
-SLOW_TURN_SPEED = 20.0
-MORE_SLOW_TURN_SPEED = 10.0
+TURN_SPEED = 15.5
+GO_BACK_SPEED = 16.5
 
 
 class Body:
@@ -34,6 +33,7 @@ class Body:
             "y": 0}
         self._orientation = "nord"
         self._color_reader = ColorSensorReader()
+        self._rotating = False
 
     def sense(self, client):
         while True:
@@ -64,24 +64,8 @@ class Body:
             client.publish(f"sense/orientation", str(self._orientation))
             client.publish(f"sense/position/x", str(self._position["x"]))
             client.publish(f"sense/position/y", str(self._position["y"]))
+            client.publish("sense/rotating", str(self._rotating))
             time.sleep(0.1)
-
-    """
-    def convert_byte_to_angle(self, byte_value):
-        print("byte value", byte_value)
-        # Convert the byte value (0-255) to degrees (0-360)
-        if byte_value <= 70:
-            # Scaling 0-70 to 0-180 degrees
-            degrees = (byte_value / 70) * 180
-        else:
-            # Scaling 185-255 to 180-360 degrees
-            degrees = 180 + ((byte_value - 185) / 70) * 180
-            # Scalare 71-255 a 180-360 gradi VERSIONE CHAT GPT
-            # degrees = 180 + ((byte_value - 71) / 184) * 180
-
-        print("Angolo in gradi", degrees)
-        return degrees
-    """
 
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
@@ -90,12 +74,25 @@ class Body:
         self.move(BASE_SPEED, 0)
 
     def turn_left(self, vel):
-        self.move(vel, 1)
+        self._rotating = True
+        for i in range(20):
+            self.move(vel, 1)
         self.update_orientation("left", 1)
+        self._rotating = False
 
     def turn_right(self, vel):
-        self.move(vel, -1)
+        self._rotating = True
+        for i in range(20):
+            self.move(vel, -1)
         self.update_orientation("right", 1)
+        self._rotating = False
+
+    def go_back(self):
+        self._rotating = True
+        for i in range(30):
+            self.move(GO_BACK_SPEED, -1)
+        self.update_orientation("right", 2)
+        self._rotating = False
 
     def exe_action(self, value):
         print("AZIONE IN ESECUZIONE", value)
@@ -106,16 +103,10 @@ class Body:
             my_robot.move(0, 0)
         elif value == "turn_left":
             my_robot.turn_left(TURN_SPEED)
-        elif value == "turn_left_slow":
-            my_robot.turn_left(SLOW_TURN_SPEED)
-        elif value == "turn_left_more_slow":
-            my_robot.turn_left(MORE_SLOW_TURN_SPEED)
         elif value == "turn_right":
             my_robot.turn_right(TURN_SPEED)
-        elif value == "turn_right_slow":
-            my_robot.turn_right(SLOW_TURN_SPEED)
-        elif value == "turn_right_more_slow":
-            my_robot.turn_right(MORE_SLOW_TURN_SPEED)
+        elif value == "go_back":
+            my_robot.go_back()
 
     def update_orientation(self, direction, step):
         if direction == "right" and step == 1:

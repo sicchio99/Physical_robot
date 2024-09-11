@@ -11,9 +11,8 @@ class Crossroad:
         self.y = y
         self.directions = []
 
-    def initialize_directions(self, front, left, right, orientation):
-        actual_dir = self.define_direction(orientation)
-        if actual_dir == "nord":
+    def initialize_directions(self, front, left, right, direction):
+        if direction == "nord":
             self.directions.append(["sud", False])
             if front:
                 self.directions.append(["nord", True])
@@ -21,7 +20,7 @@ class Crossroad:
                 self.directions.append(["ovest", True])
             if right:
                 self.directions.append(["est", True])
-        elif actual_dir == "est":
+        elif direction == "est":
             self.directions.append(["ovest", False])
             if front:
                 self.directions.append(["est", True])
@@ -29,7 +28,7 @@ class Crossroad:
                 self.directions.append(["nord", True])
             if right:
                 self.directions.append(["sud", True])
-        elif actual_dir == "ovest":
+        elif direction == "ovest":
             self.directions.append(["est", False])
             if front:
                 self.directions.append(["ovest", True])
@@ -37,7 +36,7 @@ class Crossroad:
                 self.directions.append(["sud", True])
             if right:
                 self.directions.append(["nord", True])
-        elif actual_dir == "sud":
+        elif direction == "sud":
             self.directions.append(["nord", False])
             if front:
                 self.directions.append(["sud", True])
@@ -45,18 +44,6 @@ class Crossroad:
                 self.directions.append(["est", True])
             if right:
                 self.directions.append(["ovest", True])
-
-    def define_direction(self, orientation):
-        #actual_angle = orientation
-        #current_angle = self.normalize_angle(actual_angle)
-        if orientation < 20.0 or orientation > 340.0:
-            return "nord"
-        elif 70.0 < orientation < 110.0:
-            return "ovest"
-        elif 160.0 < orientation < 200.0:
-            return "sud"
-        elif 250.0 < orientation < 290.0:
-            return "est"
 
     def get_true_directions(self):
         return [direction[0] for direction in self.directions if direction[1] is True]
@@ -89,9 +76,3 @@ class Crossroad:
                     break
 
             self.reset()
-
-    def normalize_angle(self, angle):
-        normalized_angle = angle % (2 * math.pi)
-        if normalized_angle >= math.pi:
-            normalized_angle -= 2 * math.pi
-        return normalized_angle
