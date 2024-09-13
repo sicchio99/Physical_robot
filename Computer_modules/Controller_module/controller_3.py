@@ -70,10 +70,11 @@ class Controller:
 
         if not self._rotating:
             if self._rotation_done:
-                if front and not left and not right:
+                if front and not left and not right and self._stop != 0:
                     self._stop = 0
                     print("Finish Rotation")
                     self._rotation_done = False
+                    return "go"
                 else:
                     if self._stop == 0:
                         self._stop = 1

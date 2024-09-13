@@ -8,7 +8,6 @@ from Kobuki import Kobuki
 
 BASE_SPEED = 20.0
 TURN_SPEED = 15.5
-GO_BACK_SPEED = 16.5
 
 
 class Body:
@@ -45,11 +44,7 @@ class Body:
                 sensor_name = sensor_data['sensor_id']  # Assumendo che sensor_id sia del tipo "S1", "S2", ecc.
                 self._d_sensors[sensor_name] = sensor_data['distance']
 
-            # Leggere l'orientazione del robot
-            # angle = self._sim_body.inertial_sensor_data()['angle']
-
             # Leggere posizione del robot
-            # self._orientation = self.define_direction(angle[1])
             self.update_position()
 
             # Leggere colore
@@ -75,22 +70,22 @@ class Body:
 
     def turn_left(self, vel):
         self._rotating = True
-        for i in range(20):
+        for i in range(45):
             self.move(vel, 1)
         self.update_orientation("left", 1)
         self._rotating = False
 
     def turn_right(self, vel):
         self._rotating = True
-        for i in range(20):
+        for i in range(45):
             self.move(vel, -1)
         self.update_orientation("right", 1)
         self._rotating = False
 
     def go_back(self):
         self._rotating = True
-        for i in range(30):
-            self.move(GO_BACK_SPEED, -1)
+        for i in range(60):
+            self.move(TURN_SPEED, -1)
         self.update_orientation("right", 2)
         self._rotating = False
 
@@ -98,7 +93,7 @@ class Body:
         print("AZIONE IN ESECUZIONE", value)
         if value == "go":
             my_robot.go_straight()
-        elif value == "cross" or value == "stop":
+        elif value == "cross" or value == "stop" or value == "Finish":
             print("Stop")
             my_robot.move(0, 0)
         elif value == "turn_left":
@@ -190,13 +185,19 @@ if __name__ == "__main__":
     sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
     sensing_thread.start()
 
+    rotation = False
+
     while True:
         client_sub.loop()
-        if my_robot._sim_body.is_moving:
-            print("Robot is already moving")
-            pass
-        else:
-            if not my_robot._rotating:
+        print("Rotating", my_robot._rotating)
+        if my_robot.actual_action == "go" or my_robot.actual_action == "stop" or my_robot.actual_action == "cross":
+            rotation = False
+            print("Actual action", my_robot.actual_action)
+        elif my_robot.actual_action == "turn_left" or my_robot.actual_action == "turn_right" or my_robot.actual_action == "go_back":
+            if not rotation:
+                rotation = True
                 my_robot.exe_action(my_robot.actual_action)
             else:
                 print("Rotazione in corso")
+        else:
+            print("Error")
