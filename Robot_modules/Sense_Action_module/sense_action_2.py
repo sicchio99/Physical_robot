@@ -33,6 +33,7 @@ class Body:
         self._orientation = "nord"
         self._color_reader = ColorSensorReader()
         self._rotating = False
+        self._active_position = False
 
     def sense(self, client):
         while True:
@@ -139,14 +140,15 @@ class Body:
                 print("ORIENTATION ERROR")
 
     def update_position(self):
-        if self._orientation == "nord":
-            self._position["x"] += 1
-        elif self._orientation == "est":
-            self._position["y"] += 1
-        elif self._orientation == "ovest":
-            self._position["y"] -= 1
-        elif self._orientation == "sud":
-            self._position["x"] -= 1
+        if self._active_position and not self._rotating:
+            if self._orientation == "nord":
+                self._position["x"] += 1
+            elif self._orientation == "est":
+                self._position["y"] += 1
+            elif self._orientation == "ovest":
+                self._position["y"] -= 1
+            elif self._orientation == "sud":
+                self._position["x"] -= 1
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -161,6 +163,10 @@ def on_message(client, userdata, msg):
     name = msg.topic.split("/")[1]
     value = msg.payload.decode("utf-8")
     my_robot.actual_action = value
+
+    if not my_robot._active_position:
+        my_robot._active_position = True
+        print("Prima azione ricevuta, _active_position impostato a True.")
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
