@@ -306,20 +306,11 @@ if __name__ == "__main__":
         # Aspetta un momento per assicurarsi che i dati del sensore siano aggiornati
         time.sleep(2)
 
+        for i in range(30):
+            robot.move(20,20,0)
+
+
         """
-        # Esegui la rotazione di 90 gradi in senso antiorario
-        print("Rotazione di 90 gradi in senso antiorario...")
-        robot.rotate_90_degrees(direction=1)
-
-        # Stampa dell'angolo corrente dopo la rotazione
-        current_byte_value = robot.inertial_sensor_data()['angle'][1]
-        current_angle = robot.convert_byte_to_angle(current_byte_value)
-        print(f"Angolo corrente dopo rotazione antioraria: {current_angle} gradi")
-
-        # Ferma il thread di lettura dei dati alla fine
-        robot.kobukistart(robot.read_data)
-        """
-
         for i in range(20):
             robot.move(15.5, 15.5, rotate=1)
 
@@ -327,38 +318,7 @@ if __name__ == "__main__":
 
         time.sleep(5)
 
-        #for i in range(40):
-            #robot.move(30,30,0)
-        #time.sleep(5)
-
-        """
-        for i in range(17):
-            robot.move(18.5, 18.5, rotate=-1)
-            current_byte_value = robot.inertial_sensor_data()['angle'][1]
-            current_angle = robot.convert_byte_to_angle(current_byte_value)
-            print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
-
-
-        print("Operazione completata.")
-
-        time.sleep(10)
-
         
-        current_byte_value = robot.inertial_sensor_data()['angle'][1]
-        current_angle = robot.convert_byte_to_angle(current_byte_value)
-        print(f"Angolo finale: {current_angle} gradi")
-
-        for i in range(26):
-            robot.move(19.5, 19.5, rotate=1)
-            current_byte_value = robot.inertial_sensor_data()['angle'][1]
-            current_angle = robot.convert_byte_to_angle(current_byte_value)
-            print(f"Angolo corrente dopo rotazione {i}: {current_angle} gradi")
-
-
-        print("Operazione completata.")
-
-        time.sleep(10)
-        """
 
         for i in range(30):
             robot.move(16.5, 16.5, rotate=-1)
@@ -367,10 +327,7 @@ if __name__ == "__main__":
         print("Operazione completata.")
 
         time.sleep(5)
-
-        #for i in range(40):
-            #robot.move(30,30,0)
-        #time.sleep(5)
+        """
 
     except Exception as e:
         print(f"Errore: {e}")
