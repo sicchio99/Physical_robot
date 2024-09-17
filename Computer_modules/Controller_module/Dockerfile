@@ -3,4 +3,4 @@ FROM python:3.10-slim
 WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
-CMD ["python", "controller_3.py"]
+CMD ["python", "controller.py"]

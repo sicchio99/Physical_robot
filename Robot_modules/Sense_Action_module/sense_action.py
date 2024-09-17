@@ -7,9 +7,7 @@ from collections import deque
 from Kobuki import Kobuki
 
 BASE_SPEED = 20.0
-TURN_SPEED = 40.0
-SLOW_TURN_SPEED = 20.0
-MORE_SLOW_TURN_SPEED = 10.0
+TURN_SPEED = 15.5
 
 
 class Body:
@@ -34,6 +32,8 @@ class Body:
             "y": 0}
         self._orientation = "nord"
         self._color_reader = ColorSensorReader()
+        self._rotating = False
+        self._active_position = False
 
     def sense(self, client):
         while True:
@@ -45,11 +45,7 @@ class Body:
                 sensor_name = sensor_data['sensor_id']  # Assumendo che sensor_id sia del tipo "S1", "S2", ecc.
                 self._d_sensors[sensor_name] = sensor_data['distance']
 
-            # Leggere l'orientazione del robot
-            angle = self._sim_body.inertial_sensor_data()['angle']
-
             # Leggere posizione del robot
-            self._orientation = self.define_direction(angle[1])
             self.update_position()
 
             # Leggere colore
@@ -61,25 +57,11 @@ class Body:
             for name in self._d_sensors.keys():
                 client.publish(f"sense/{name}", str(self._d_sensors[name]))
                 print(f"Published data from sensor: {name}")
-            client.publish(f"sense/orientation", str(angle))
+            client.publish(f"sense/orientation", str(self._orientation))
             client.publish(f"sense/position/x", str(self._position["x"]))
             client.publish(f"sense/position/y", str(self._position["y"]))
+            client.publish("sense/rotating", str(self._rotating))
             time.sleep(0.1)
-
-    def convert_byte_to_angle(self, byte_value):
-        print("byte value", byte_value)
-        # Convert the byte value (0-255) to degrees (0-360)
-        if byte_value <= 70:
-            # Scaling 0-70 to 0-180 degrees
-            degrees = (byte_value / 70) * 180
-        else:
-            # Scaling 185-255 to 180-360 degrees
-            degrees = 180 + ((byte_value - 185) / 70) * 180
-            # Scalare 71-255 a 180-360 gradi VERSIONE CHAT GPT
-            # degrees = 180 + ((byte_value - 71) / 184) * 180
-
-        print("Angolo in gradi", degrees)
-        return degrees
 
     def move(self, speed, turn):
         self._sim_body.move(speed, speed, turn)
@@ -88,51 +70,85 @@ class Body:
         self.move(BASE_SPEED, 0)
 
     def turn_left(self, vel):
-        self.move(vel, 1)
+        self._rotating = True
+        for i in range(43):
+            self.move(vel, 1)
+        self.update_orientation("left", 1)
+        self._rotating = False
 
     def turn_right(self, vel):
-        self.move(vel, -1)
+        self._rotating = True
+        for i in range(43):
+            self.move(vel, -1)
+        self.update_orientation("right", 1)
+        self._rotating = False
+
+    def go_back(self):
+        self._rotating = True
+        for i in range(60):
+            self.move(TURN_SPEED, -1)
+        self.update_orientation("right", 2)
+        self._rotating = False
 
     def exe_action(self, value):
         print("AZIONE IN ESECUZIONE", value)
         if value == "go":
             my_robot.go_straight()
-        elif value == "cross" or value == "stop":
+        elif value == "cross" or value == "stop" or value == "Finish":
             print("Stop")
             my_robot.move(0, 0)
         elif value == "turn_left":
             my_robot.turn_left(TURN_SPEED)
-        elif value == "turn_left_slow":
-            my_robot.turn_left(SLOW_TURN_SPEED)
-        elif value == "turn_left_more_slow":
-            my_robot.turn_left(MORE_SLOW_TURN_SPEED)
         elif value == "turn_right":
             my_robot.turn_right(TURN_SPEED)
-        elif value == "turn_right_slow":
-            my_robot.turn_right(SLOW_TURN_SPEED)
-        elif value == "turn_right_more_slow":
-            my_robot.turn_right(MORE_SLOW_TURN_SPEED)
+        elif value == "go_back":
+            my_robot.go_back()
 
-    def define_direction(self, orientation):
-        degrees = self.convert_byte_to_angle(orientation)
-        if degrees < 20.0 or degrees > 340.0:
-            return "nord"
-        elif 70.0 < degrees < 110.0:
-            return "est"
-        elif 160.0 < degrees < 200.0:
-            return "sud"
-        elif 250.0 < degrees < 290.0:
-            return "ovest"
+    def update_orientation(self, direction, step):
+        if direction == "right" and step == 1:
+            if self._orientation == "nord":
+                self._orientation = "est"
+            elif self._orientation == "est":
+                self._orientation = "sud"
+            elif self._orientation == "sud":
+                self._orientation = "ovest"
+            elif self._orientation == "ovest":
+                self._orientation = "nord"
+            else:
+                print("ORIENTATION ERROR")
+        elif direction == "right" and step == 2:
+            if self._orientation == "nord":
+                self._orientation = "sud"
+            elif self._orientation == "est":
+                self._orientation = "ovest"
+            elif self._orientation == "sud":
+                self._orientation = "nord"
+            elif self._orientation == "ovest":
+                self._orientation = "est"
+            else:
+                print("ORIENTATION ERROR")
+        elif direction == "left":
+            if self._orientation == "nord":
+                self._orientation = "ovest"
+            elif self._orientation == "est":
+                self._orientation = "nord"
+            elif self._orientation == "sud":
+                self._orientation = "est"
+            elif self._orientation == "ovest":
+                self._orientation = "sud"
+            else:
+                print("ORIENTATION ERROR")
 
     def update_position(self):
-        if self._orientation == "nord":
-            self._position["x"] += 1
-        elif self._orientation == "est":
-            self._position["y"] += 1
-        elif self._orientation == "ovest":
-            self._position["y"] -= 1
-        elif self._orientation == "sud":
-            self._position["x"] -= 1
+        if self._active_position and not self._rotating:
+            if self._orientation == "nord":
+                self._position["x"] += 1
+            elif self._orientation == "est":
+                self._position["y"] += 1
+            elif self._orientation == "ovest":
+                self._position["y"] -= 1
+            elif self._orientation == "sud":
+                self._position["x"] -= 1
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -147,6 +163,10 @@ def on_message(client, userdata, msg):
     name = msg.topic.split("/")[1]
     value = msg.payload.decode("utf-8")
     my_robot.actual_action = value
+
+    if not my_robot._active_position:
+        my_robot._active_position = True
+        print("Prima azione ricevuta, _active_position impostato a True.")
 
 
 def on_subscribe(client, userdata, mid, reason_code_list, properties):
@@ -171,10 +191,19 @@ if __name__ == "__main__":
     sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
     sensing_thread.start()
 
+    rotation = False
+
     while True:
         client_sub.loop()
-        if my_robot._sim_body.is_moving:
-            print("Robot is already moving")
-            pass
+        print("Rotating", my_robot._rotating)
+        if my_robot.actual_action == "go" or my_robot.actual_action == "stop" or my_robot.actual_action == "cross":
+            rotation = False
+            print("Actual action", my_robot.actual_action)
+        elif my_robot.actual_action == "turn_left" or my_robot.actual_action == "turn_right" or my_robot.actual_action == "go_back":
+            if not rotation:
+                rotation = True
+                my_robot.exe_action(my_robot.actual_action)
+            else:
+                print("Rotazione in corso")
         else:
-            my_robot.exe_action(my_robot.actual_action)
+            print("Error")
