@@ -51,22 +51,22 @@ class Controller:
 
     def control_directions(self):
         global client_mqtt
-        print("-------INIZIO DEL CONTROLLO----------")
+        # print("-------INIZIO DEL CONTROLLO----------")
         front = self._free_directions["front"]
         left = self._free_directions["left"]
         right = self._free_directions["right"]
-        print("FRONT", front)
-        print("LEFT", left)
-        print("RIGHT", right)
-        print("Update direction", str(self._update_direction))
-        print("Waiting update", str(self._waiting_update_direction))
+        # print("FRONT", front)
+        # print("LEFT", left)
+        # print("RIGHT", right)
+        # print("Update direction", str(self._update_direction))
+        # print("Waiting update", str(self._waiting_update_direction))
 
         if self._update_direction["front"] and self._update_direction["left"] and self._update_direction["right"] \
                 and self._update_direction["x"] and self._update_direction["y"]:
             self._waiting_update_direction = False
 
-        print("Rotating", self._rotating)
-        print("Rotating done", self._rotation_done)
+        # print("Rotating", self._rotating)
+        # print("Rotating done", self._rotation_done)
 
         if not self._rotating:
             if self._rotation_done:
@@ -82,18 +82,17 @@ class Controller:
                     elif self._stop == 1:
                         time.sleep(5)
                         self._stop = 2
-                        print("Rotation done, exit from turn/crossroad")
+                        # print("Rotation done, exit from turn/crossroad")
                         return "go"
                     else:
-                        print("Rotation done, exit from turn/crossroad")
+                        # print("Rotation done, exit from turn/crossroad")
                         return "go"
             else:
-                print("Old action", self._old_action)
-                print("Waiting update", self._waiting_update_direction)
+                # print("Old action", self._old_action)
+                # print("Waiting update", self._waiting_update_direction)
                 if self._old_action == "cross" and not self._waiting_update_direction:
                     if (front + left + right) >= 2:
-                        if self.is_far_enough(self._position["x"], self._position["y"],
-                                              self._crossroads):
+                        if self.is_far_enough():
                             print("New Cross!")
                             self._crossroads.append(Crossroad(self._position["x"], self._position["y"]))
                             print("Posizone:", self._crossroads[-1].x, self._crossroads[-1].y)
@@ -102,8 +101,10 @@ class Controller:
                                 print(cross, cross.x, cross.y)
                         else:
                             print("Crossroads already met!")
+                            print("Actual position", self._position["x"], self._position["y"])
 
-                        actual_cross = self.find_cross(self._crossroads, self._position)
+                        actual_cross = self.find_cross()
+                        print("Incrocio recuperato:", actual_cross)
                         if len(actual_cross.directions) == 0:
                             print("Init directions")
                             actual_cross.initialize_directions(front, left, right, self._direction)
@@ -135,7 +136,7 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            time.sleep(9.5)
+                            time.sleep(9.2)
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -173,15 +174,15 @@ class Controller:
             self._waiting_rotation = True
             return "turn_left"
 
-    def is_far_enough(self, x, y, crossroads, threshold=0.4):
-        for cross in crossroads:
-            if abs(cross.x - x) <= threshold and abs(cross.y - y) <= threshold:
+    def is_far_enough(self, threshold=80):
+        for cross in self._crossroads:
+            if abs(cross.x - self._position["x"]) <= threshold and abs(cross.y - self._position["y"]) <= threshold:
                 return False
         return True
 
-    def find_cross(self, crossroads_list, coord, threshold=0.4):
-        for cross in crossroads_list:
-            if abs(cross.x - coord["x"]) <= threshold and abs(cross.y - coord["y"]) <= threshold:
+    def find_cross(self, threshold=80):
+        for cross in self._crossroads:
+            if abs(cross.x - self._position["x"]) <= threshold and abs(cross.y - self._position["y"]) <= threshold:
                 return cross
         return None
 
@@ -242,7 +243,7 @@ def on_message(client, userdata, msg):
     perception_name = msg.topic.split("/")[1]
     message_value = msg.payload.decode("utf-8")
 
-    print("MESSAGE:", perception_name, message_value)
+    #print("MESSAGE:", perception_name, message_value)
 
     match perception_name:
         case "front":
@@ -252,8 +253,8 @@ def on_message(client, userdata, msg):
         case "right":
             controller.update_direction_function(perception_name, message_value)
         case "green":
-            print("Sensor color:", message_value)
-            # controller.update_target(message_value)
+            #print("Sensor color:", message_value)
+            controller.update_target(message_value)
         case "orientation":
             controller._direction = message_value
         case "position-x":
@@ -264,16 +265,16 @@ def on_message(client, userdata, msg):
             controller.update_rotating(message_value)
 
     if not (controller.rotating or controller.rotation_done) and controller.target:
-        client.publish("controls/target", "Finish")
+        client.publish("controls/direction", "Finish")
         print("FINE")
     else:
         if not controller._waiting_rotation:
             if not controller.rotating:
                 control = controller.control_directions()
-                print("CONTROL RESULT", control)
+                # print("CONTROL RESULT", control)
                 if control != controller.old_action:
                     client.publish(f"controls/direction", control)
-                    print("published control:", control)
+                    # print("published control:", control)
                     controller._old_action = control
         else:
             print("Attesa inizio rotazione")

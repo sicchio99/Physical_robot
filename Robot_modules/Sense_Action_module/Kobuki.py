@@ -226,3 +226,8 @@ class Kobuki:
         th2.start()
         th2.join()
         self.__th1.join()
+
+    def play_clean_start_sound(self):
+        barr = bytearray([170, 85, 3, 4, 1, 5, 3])
+        Kobuki.seri.write(barr)
+        return True
