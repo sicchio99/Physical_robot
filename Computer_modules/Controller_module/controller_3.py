@@ -136,7 +136,7 @@ class Controller:
                         else:
                             print("Crossroad or turn met")
                             client_mqtt.disconnect()
-                            time.sleep(9.2)
+                            time.sleep(9.3)
                             client_mqtt.reconnect()
                             self._waiting_update_direction = True
                             return "cross"
@@ -174,13 +174,13 @@ class Controller:
             self._waiting_rotation = True
             return "turn_left"
 
-    def is_far_enough(self, threshold=80):
+    def is_far_enough(self, threshold=100):
         for cross in self._crossroads:
             if abs(cross.x - self._position["x"]) <= threshold and abs(cross.y - self._position["y"]) <= threshold:
                 return False
         return True
 
-    def find_cross(self, threshold=80):
+    def find_cross(self, threshold=100):
         for cross in self._crossroads:
             if abs(cross.x - self._position["x"]) <= threshold and abs(cross.y - self._position["y"]) <= threshold:
                 return cross

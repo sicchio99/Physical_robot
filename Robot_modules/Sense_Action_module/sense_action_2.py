@@ -71,14 +71,14 @@ class Body:
 
     def turn_left(self, vel):
         self._rotating = True
-        for i in range(45):
+        for i in range(43):
             self.move(vel, 1)
         self.update_orientation("left", 1)
         self._rotating = False
 
     def turn_right(self, vel):
         self._rotating = True
-        for i in range(45):
+        for i in range(43):
             self.move(vel, -1)
         self.update_orientation("right", 1)
         self._rotating = False
