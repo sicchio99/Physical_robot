@@ -1,6 +1,3 @@
-import math
-
-
 class Crossroad:
     x: int
     y: int

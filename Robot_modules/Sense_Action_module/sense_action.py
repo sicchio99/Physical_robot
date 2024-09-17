@@ -1,5 +1,4 @@
 import time
-import threading
 import paho.mqtt.client as mqtt
 from Sensors import UltrasonicSensorReader
 from Sensors import ColorSensorReader
@@ -187,9 +186,6 @@ if __name__ == "__main__":
     client_sub.on_connect = on_connect
     client_sub.on_message = on_message
     client_sub.on_subscribe = on_subscribe
-
-    sensing_thread = threading.Thread(target=my_robot.sense, args=(client_pub,))
-    sensing_thread.start()
 
     rotation = False
 
